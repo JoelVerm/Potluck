@@ -1,0 +1,30 @@
+{
+  "name": "vite-template-solid",
+  "version": "0.0.0",
+  "description": "",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.5.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.45",
+    "solid-devtools": "^0.29.3",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.3",
+    "vite-plugin-solid": "^2.10.2"
+  },
+  "dependencies": {
+    "@kobalte/core": "^0.13.6",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "solid-js": "^1.8.22",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}
