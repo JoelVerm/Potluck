@@ -9,7 +9,7 @@ import { TextField, TextFieldInput, TextFieldLabel } from './components/ui/text-
 
 const App: Component = () => {
   const [weatherLocation, setWeatherLocation] = createSignal('London')
-  const [weather] = createResource(weatherLocation, (location) => fetch(`https://localhost:7123/weatherforecast?location=${location}`).then(res => res.json()))
+  const [weather] = createResource(weatherLocation, (location) => fetch(`https://localhost/api/weatherforecast?location=${location}`).then(res => res.json()))
 
   return (
     <Flex flexDirection='col' alignItems='center' justifyContent='center' class="gap-2 my-2">

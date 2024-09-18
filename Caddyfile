@@ -1,0 +1,11 @@
+localhost
+
+handle_path /api/* {
+	reverse_proxy :6969
+}
+
+handle_path /wall/* {
+	reverse_proxy :3100
+}
+
+reverse_proxy :3000
