@@ -58,7 +58,7 @@ const Cooking: Component = () => {
                 <span>I'm cooking today!</span>
                 <Switch
                     class="flex items-center space-x-2"
-                    defaultChecked={cooking()}
+                    checked={cooking()}
                     onChange={setCooking}
                 >
                     <SwitchControl>

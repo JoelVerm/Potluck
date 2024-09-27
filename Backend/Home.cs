@@ -1,4 +1,5 @@
 ﻿using Backend_Example.Database;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Immutable;
 
 namespace Backend_Example
@@ -12,39 +13,39 @@ namespace Backend_Example
             app.MapGet("/eatingTotal", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return user?.EatingTotalPeople ?? 0;
+                return Results.Json(user?.EatingTotalPeople ?? 0);
             }).WithName("EatingTotal").WithOpenApi();
 
-            app.MapPost("/eatingTotal", (int eatingTotal, HttpContext context, PotluckDb db) =>
+            app.MapPost("/eatingTotal", ([FromBody] int eatingTotal, HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
                 if (user == null)
-                    return 0;
+                    return Results.Json(0);
                 user.EatingTotalPeople = eatingTotal;
                 db.SaveChanges();
-                return user.EatingTotalPeople;
+                return Results.Json(user.EatingTotalPeople);
             }).WithName("SetEatingTotal").WithOpenApi();
 
             app.MapGet("/homeStatus", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return HomeStatus[user?.AtHomeStatus ?? 0];
+                return Results.Json(HomeStatus[user?.AtHomeStatus ?? 0]);
             }).WithName("HomeStatus").WithOpenApi();
 
-            app.MapPost("/homeStatus", (string homeStatus, HttpContext context, PotluckDb db) =>
+            app.MapPost("/homeStatus", ([FromBody] string homeStatus, HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
                 if (user == null)
-                    return HomeStatus[0];
+                    return Results.Json(HomeStatus[0]);
                 user.AtHomeStatus = HomeStatus.ToImmutableList().IndexOf(homeStatus);
                 db.SaveChanges();
-                return HomeStatus[user.AtHomeStatus];
+                return Results.Json(HomeStatus[user.AtHomeStatus]);
             }).WithName("SetHomeStatus").WithOpenApi();
 
             app.MapGet("/homeStatusList", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return user?.House?.Users.Select(u => HomeStatus[u.AtHomeStatus]).ToArray() ?? [];
+                return Results.Json(user?.House?.Users.Select(u => HomeStatus[u.AtHomeStatus]).ToArray() ?? []);
             }).WithName("HomeStatusList").WithOpenApi();
         }
     }

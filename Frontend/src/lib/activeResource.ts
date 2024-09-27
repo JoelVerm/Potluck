@@ -30,7 +30,11 @@ export function activeResource<T>(
                 : updater
             fetch(postUrl, {
                 method: 'POST',
-                body: JSON.stringify(newValue)
+                body: JSON.stringify(newValue),
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                }
             })
                 .then(res => res.json())
                 .then(newValue => mutate(newValue))

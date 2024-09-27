@@ -124,7 +124,11 @@ const Shopping: Component = () => {
                                     description: description(),
                                     money: money(),
                                     points: points()
-                                })
+                                }),
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    Accept: 'application/json'
+                                }
                             })
                         }}
                     >

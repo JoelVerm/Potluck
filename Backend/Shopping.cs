@@ -1,4 +1,5 @@
 ﻿using Backend_Example.Database;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Backend_Example
 {
@@ -18,50 +19,50 @@ namespace Backend_Example
             app.MapGet("/shoppingList", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return user?.House?.ShoppingList ?? "";
+                return Results.Json(user?.House?.ShoppingList ?? "");
             }).WithName("ShoppingList").WithOpenApi();
 
-            app.MapPost("/shoppingList", (string shoppingList, HttpContext context, PotluckDb db) =>
+            app.MapPost("/shoppingList", ([FromBody] string shoppingList, HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
                 var house = user?.House;
                 if (house == null)
-                    return "";
+                    return Results.Json("");
                 house.ShoppingList = shoppingList;
                 db.SaveChanges();
-                return house.ShoppingList;
+                return Results.Json(house.ShoppingList);
             }).WithName("SetShoppingList").WithOpenApi();
 
             app.MapGet("/allPeople", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return user?.House?.Users.Select(u => u.UserName).ToArray() ?? [];
+                return Results.Json(user?.House?.Users.Select(u => u.UserName).ToArray() ?? []);
             }).WithName("AllPeople").WithOpenApi();
 
             app.MapGet("/transactions", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return user?.House?.Transactions
+                return Results.Json(user?.House?.Transactions
                     .Select(t => new Transaction(
                         t.ToUser?.UserName ?? (t.IsPenalty ? "Penalty" : ""),
                         t.Users.Select(u => u?.UserName ?? "").ToArray(),
                         t.Description, (decimal)t.EuroCents / 100,
                         t.CookingPoints
                     )
-                ).ToArray() ?? [];
+                ).ToArray() ?? []);
             }).WithName("Transactions").WithOpenApi();
 
             app.MapPost("/addTransaction", (Transaction transaction, HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
                 if (user == null)
-                    return false;
+                    return Results.Json(false);
                 var house = user?.House;
                 if (house == null)
-                    return false;
+                    return Results.Json(false);
                 var success = house.AddTransaction(user.UserName, transaction.From, transaction.Description, transaction.Money, transaction.Points);
                 db.SaveChanges();
-                return success;
+                return Results.Json(success);
             }).WithName("AddTransaction").WithOpenApi();
 
         }

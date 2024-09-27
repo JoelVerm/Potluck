@@ -1,4 +1,5 @@
 ﻿using Backend_Example.Database;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Backend_Example
 {
@@ -17,59 +18,61 @@ namespace Backend_Example
             app.MapGet("/cooking", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return user?.House?.CookingUser == user;
+                return Results.Json(user?.House?.CookingUser == user);
             }).WithName("Cooking").WithOpenApi();
 
-            app.MapPost("/cooking", (bool cooking, HttpContext context, PotluckDb db) =>
+            app.MapPost("/cooking", ([FromBody] bool cooking, HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
                 cooking = user?.SetCookingStatus(cooking) ?? false;
                 db.SaveChanges();
-                return cooking;
+                return Results.Json(cooking);
             }).WithName("SetCooking").WithOpenApi();
 
             app.MapGet("/cookingTotal", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return user?.House?.CookingPrice.ToMoney() ?? 0;
+                return Results.Json(user?.House?.CookingPrice.ToMoney() ?? 0);
             }).WithName("CookingTotal").WithOpenApi();
 
-            app.MapPost("/cookingTotal", (decimal total, HttpContext context, PotluckDb db) =>
+            app.MapPost("/cookingTotal", ([FromBody] decimal total, HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
+                if (user == null)
+                    return Results.Json(0);
                 var house = user?.House;
                 if (house == null)
-                    return 0;
-                if (house.CookingUser != user)
-                    return house.CookingPrice.ToMoney();
+                    return Results.Json(0);
+                if (!user!.IsCooking())
+                    return Results.Json(house.CookingPrice.ToMoney());
                 house.CookingPrice = total.ToCents();
                 db.SaveChanges();
-                return house.CookingPrice.ToMoney();
+                return Results.Json(house.CookingPrice.ToMoney());
             }).WithName("SetCookingTotal").WithOpenApi();
 
             app.MapGet("/cookingDescription", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return user?.House?.CookingDescription ?? "";
+                return Results.Json(user?.House?.CookingDescription ?? "");
             }).WithName("CookingDescription").WithOpenApi();
 
-            app.MapPost("/cookingDescription", (string desc, HttpContext context, PotluckDb db) =>
+            app.MapPost("/cookingDescription", ([FromBody] string desc, HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
                 var house = user?.House;
                 if (house == null)
-                    return "";
+                    return Results.Json("");
                 if (user?.IsCooking() != true)
-                    return house.CookingDescription;
+                    return Results.Json(house.CookingDescription);
                 house.CookingDescription = desc;
                 db.SaveChanges();
-                return house.CookingDescription;
+                return Results.Json(house.CookingDescription);
             }).WithName("SetCookingDescription").WithOpenApi();
 
             app.MapGet("/eatingList", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return user?.House?.Users
+                return Results.Json(user?.House?.Users
                     .Where(u => u.EatingTotalPeople > 0)
                     .Select(u => new EatingPerson(
                         u.UserName ?? "",
@@ -77,7 +80,7 @@ namespace Backend_Example
                         u.CookingPoints(),
                         u.Diet
                     )
-                ).ToArray();
+                ).ToArray() ?? []);
             }).WithName("EatingList").WithOpenApi();
         }
     }
