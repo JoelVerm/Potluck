@@ -29,6 +29,7 @@ import {
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
+import { activeResource, pollingResource } from '~/lib/activeResource'
 
 interface EatingPerson {
     name: string
@@ -38,24 +39,13 @@ interface EatingPerson {
 }
 
 const Cooking: Component = () => {
-    const [weatherLocation, setWeatherLocation] = createSignal('London')
-    const [weather] = createResource(weatherLocation, location =>
-        fetch(
-            `https://localhost/api/weatherforecast?location=${location}`
-        ).then(res => res.json())
+    const [cooking, setCooking] = activeResource<boolean>('/api/cooking')
+    const [cookingTotal, setCookingTotal] =
+        activeResource<number>('/api/cookingTotal')
+    const [description, setDescription] = activeResource<string>(
+        '/api/cookingDescription'
     )
-
-    const [cooking, setCooking] = createSignal(false)
-    const [cookingTotal, setCookingTotal] = createSignal(0)
-    const [description, setDescription] = createSignal('')
-    const [eatingList, _] = createSignal<EatingPerson[]>([
-        { name: 'Jente', count: 2, cookingPoints: 12, diet: '' },
-        { name: 'Anneke', count: 1, cookingPoints: 0, diet: 'Vegetarian' },
-        { name: 'Joël', count: 3, cookingPoints: -3, diet: 'Vegetarian' },
-        { name: 'Olaf', count: 1, cookingPoints: 3, diet: '' },
-        { name: 'Selina', count: 1, cookingPoints: -8, diet: 'Vegetarian' },
-        { name: 'Misha', count: 1, cookingPoints: 1, diet: 'Less spicy' }
-    ])
+    const [eatingList] = pollingResource<EatingPerson[]>('/api/eatingList')
 
     return (
         <Flex
@@ -78,7 +68,7 @@ const Cooking: Component = () => {
             </FlexRow>
             <NumberRow
                 text="Cooking total"
-                value={cookingTotal()}
+                value={cookingTotal() ?? 0}
                 setValue={setCookingTotal}
                 step={0.01}
                 enabled={cooking()}
@@ -94,11 +84,11 @@ const Cooking: Component = () => {
             </TextField>
             <div>
                 <h1>
-                    {eatingList().reduce((t, p) => t + p.count, 0)} people
+                    {eatingList()?.reduce((t, p) => t + p.count, 0) ?? 0} people
                     eating today
                 </h1>
                 <For
-                    each={eatingList().toSorted((a, b) =>
+                    each={eatingList()?.toSorted((a, b) =>
                         a.name.localeCompare(b.name)
                     )}
                 >

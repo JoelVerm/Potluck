@@ -1,14 +1,39 @@
+import type { Resource } from 'solid-js'
 import { createResource, onCleanup } from 'solid-js'
 
-export function activeResource<T>(getUrl: string, postUrl: string) {
+type ResourceUpdater<T> = (original?: T) => T
+type ResourceUpdate<T> = ResourceUpdater<T> | T
+type ActiveResource<T> = readonly [
+    Resource<T>,
+    (updater: ResourceUpdate<T>) => void
+]
+
+function isFunction<T>(maybeFunc: T | unknown): maybeFunc is T {
+    return typeof maybeFunc === 'function'
+}
+
+export function activeResource<T>(getUrl: string): ActiveResource<T>
+export function activeResource<T>(
+    getUrl: string,
+    postUrl: string
+): ActiveResource<T>
+export function activeResource<T>(
+    getUrl: string,
+    postUrl?: string
+): ActiveResource<T> {
+    postUrl ??= getUrl
     const [value, mutate] = pollingResource<T>(getUrl)
-    const update = (updater: (original?: T) => T) => {
+    const update = (updater: ResourceUpdate<T>) => {
         mutate((original?: T) => {
-            const newValue = updater(original)
+            const newValue = isFunction<ResourceUpdater<T>>(updater)
+                ? updater(original)
+                : updater
             fetch(postUrl, {
                 method: 'POST',
                 body: JSON.stringify(newValue)
             })
+                .then(res => res.json())
+                .then(newValue => mutate(newValue))
             return newValue
         })
     }

@@ -48,27 +48,23 @@ import { Button } from '~/components/ui/button'
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
+import { activeResource, pollingResource } from '~/lib/activeResource'
+
+interface Transaction {
+    to: string
+    from: string[]
+    description: string
+    money: number
+    points: number
+}
 
 const Shopping: Component = () => {
-    const [weatherLocation, setWeatherLocation] = createSignal('London')
-    const [weather] = createResource(weatherLocation, location =>
-        fetch(
-            `https://localhost/api/weatherforecast?location=${location}`
-        ).then(res => res.json())
-    )
-
-    const [shoppingList, setShoppingList] = createSignal('')
+    const [shoppingList, setShoppingList] =
+        activeResource<string>('/api/shoppingList')
+    const [allPeople] = pollingResource<string[]>('/api/allPeople')
     const [description, setDescription] = createSignal('')
     const [money, setMoney] = createSignal(0)
     const [points, setPoints] = createSignal(0)
-    const [allPeople, setAllPeople] = createSignal([
-        'Anneke',
-        'Olaf',
-        'Jente',
-        'Joël',
-        'Selina',
-        'Misha'
-    ])
     const [peopleList, setPeopleList] = createSignal<string[]>([])
     const [peopleCountList, setPeopleCountList] = createSignal<{
         [key: string]: number
@@ -92,22 +88,7 @@ const Shopping: Component = () => {
             )
         )
     )
-    const [transactions, setTransactions] = createSignal([
-        {
-            to: 'Anneke',
-            from: ['Jente', 'Misha', 'Olaf'],
-            description: 'Pasta',
-            money: 18.45,
-            points: 3
-        },
-        {
-            to: 'Olaf',
-            from: ['Anneke', 'Olaf', 'Jente', 'Joël', 'Selina', 'Misha'],
-            description: 'Huisboodschappen',
-            money: 8.29,
-            points: 0
-        }
-    ])
+    const [transactions] = pollingResource<Transaction[]>('/api/transactions')
 
     return (
         <Flex
@@ -166,7 +147,7 @@ const Shopping: Component = () => {
                     multiple
                     value={peopleList()}
                     onChange={setPeopleList}
-                    options={allPeople()}
+                    options={allPeople() ?? []}
                     placeholder="Add some people"
                     class="w-full"
                     itemComponent={props => (

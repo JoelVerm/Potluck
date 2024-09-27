@@ -5,5 +5,6 @@
         public int Id { get; set; }
         public Transaction Transaction { get; set; }
         public User? User { get; set; }
+        public int Count { get; set; }
     }
 }

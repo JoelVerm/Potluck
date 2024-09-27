@@ -24,6 +24,7 @@ import {
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
+import { activeResource, pollingResource } from '~/lib/activeResource'
 
 const homeStatusOptions = ['At home', 'Away for a bit', 'Out of town'] as const
 
@@ -33,25 +34,13 @@ interface HomeStatusList {
 }
 
 const Home: Component = () => {
-    const [weatherLocation, setWeatherLocation] = createSignal('London')
-    const [weather] = createResource(weatherLocation, location =>
-        fetch(
-            `https://localhost/api/weatherforecast?location=${location}`
-        ).then(res => res.json())
+    const [eatingTotal, setEatingTotal] =
+        activeResource<number>('/api/eatingTotal')
+    const [homeStatus, setHomeStatus] =
+        activeResource<HomeStatus>('/api/homeStatus')
+    const [homeStatusList] = pollingResource<HomeStatusList>(
+        '/api/homeStatusList'
     )
-
-    const [eatingTotal, setEatingTotal] = createSignal(0)
-    const [homeStatus, setHomeStatus] = createSignal('')
-    const [homeStatusList, _] = createSignal<HomeStatusList>({
-        Jente: 'At home',
-        Anne: 'Away for a bit',
-        Maarten: 'Out of town',
-        Olaf: 'At home',
-        Selina: 'Out of town',
-        Misha: 'Away for a bit',
-        Anneke: 'Away for a bit',
-        Joël: 'At home'
-    })
 
     return (
         <Flex
@@ -62,15 +51,17 @@ const Home: Component = () => {
         >
             <NumberRow
                 text="Eating with"
-                value={eatingTotal()}
+                value={eatingTotal() ?? 0}
                 setValue={setEatingTotal}
             />
             <FlexRow>
                 <span>Right now I am</span>
                 <Select
                     value={homeStatus()}
-                    onChange={setHomeStatus}
+                    onChange={v => setHomeStatus(v!)}
                     options={homeStatusOptions.slice()}
+                    defaultValue={homeStatusOptions[0]}
+                    disallowEmptySelection={true}
                     placeholder="Set your status"
                     itemComponent={props => (
                         <SelectItem item={props.item}>
@@ -92,7 +83,7 @@ const Home: Component = () => {
                         <div class="my-2">
                             <h1>{option()}</h1>
                             <For
-                                each={Object.entries(homeStatusList())
+                                each={Object.entries(homeStatusList() ?? {})
                                     .filter(e => e[1] === option())
                                     .sort((a, b) => a[0].localeCompare(b[0]))}
                             >
