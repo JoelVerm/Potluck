@@ -1,34 +1,48 @@
-import type { Component } from 'solid-js';
+import type { Component } from 'solid-js'
 
-import logo from './logo.svg';
-import styles from './App.module.css';
-import { createResource, createSignal, For } from 'solid-js';
-import { Flex } from './components/ui/flex';
-import { Switch, SwitchControl, SwitchLabel, SwitchThumb } from './components/ui/switch';
-import { TextField, TextFieldInput, TextFieldLabel } from './components/ui/text-field';
+import { For } from 'solid-js'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+
+import Home from './Home'
+import Cooking from './Cooking'
+import Shopping from './Shopping'
 
 const App: Component = () => {
-  const [weatherLocation, setWeatherLocation] = createSignal('London')
-  const [weather] = createResource(weatherLocation, (location) => fetch(`https://localhost/api/weatherforecast?location=${location}`).then(res => res.json()))
+    const tabs = {
+        Home: <Home />,
+        Cooking: <Cooking />,
+        Shopping: <Shopping />,
+        Settings: <></>
+    }
+    const tabsStyle = `grid-template-columns: repeat(${
+        Object.keys(tabs).length
+    }, minmax(0, 1fr));`
 
-  return (
-    <Flex flexDirection='col' alignItems='center' justifyContent='center' class="gap-2 my-2">
-      <Switch class="flex items-center space-x-2">
-        <SwitchControl>
-          <SwitchThumb />
-        </SwitchControl>
-        <SwitchLabel>Test switch</SwitchLabel>
-      </Switch>
-      <TextField class="grid w-full max-w-sm items-center gap-1.5">
-        <TextFieldLabel for="weatherLocation">Weather location</TextFieldLabel>
-        <TextFieldInput type="search" id="weatherLocation" placeholder={weatherLocation()} onInput={(e) => setWeatherLocation(e.currentTarget.value)} />
-      </TextField>
-      <h4>Weather in {weatherLocation()}:</h4>
-      <For each={weather()}>
-        {(weather) => <p>{weather}</p>}
-      </For>
-    </Flex>
-  );
-};
+    return (
+        <Tabs
+            defaultValue={Object.keys(tabs)[0]}
+            class="h-dvh grid"
+            style="grid-template-rows: 1fr auto"
+        >
+            <For each={Object.entries(tabs)}>
+                {([key, value]) => (
+                    <TabsContent
+                        class="w-full max-w-md mx-auto p-2 my-0"
+                        value={key}
+                    >
+                        {value}
+                    </TabsContent>
+                )}
+            </For>
+            <TabsList class="rounded-none">
+                <div class="grid w-full max-w-md" style={tabsStyle}>
+                    <For each={Object.keys(tabs)}>
+                        {key => <TabsTrigger value={key}>{key}</TabsTrigger>}
+                    </For>
+                </div>
+            </TabsList>
+        </Tabs>
+    )
+}
 
-export default App;
+export default App
