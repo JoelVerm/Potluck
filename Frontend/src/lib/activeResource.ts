@@ -23,7 +23,7 @@ export function activeResource<T>(
 ): ActiveResource<T> {
     postUrl ??= getUrl
     const [value, mutate, registerUpdate, updateValid] =
-        pollingResource<T>(getUrl)
+        _pollingResource<T>(getUrl)
     const update = (updater: ResourceUpdate<T>) => {
         mutate((original?: T) => {
             const newValue = isFunction<ResourceUpdater<T>>(updater)
@@ -49,6 +49,10 @@ export function activeResource<T>(
 }
 
 export function pollingResource<T>(getUrl: string) {
+    const [value, mutate] = _pollingResource<T>(getUrl)
+    return [value, mutate] as const
+}
+function _pollingResource<T>(getUrl: string) {
     let updateCounter = 0
     const registerUpdate = () => ++updateCounter
     const updateValid = (id: number) => updateCounter === id

@@ -15,6 +15,12 @@ namespace Backend_Example
 
         public static void SetupCookingRoutes(this IEndpointRouteBuilder app)
         {
+            app.MapGet("/cookingUser", (HttpContext context, PotluckDb db) =>
+            {
+                var user = db.GetUser(context);
+                return Results.Json(user?.House?.CookingUser?.UserName ?? "");
+            }).WithName("CookingUser").WithOpenApi();
+
             app.MapGet("/cooking", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
