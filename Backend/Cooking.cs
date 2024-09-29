@@ -15,79 +15,46 @@ namespace Backend_Example
 
         public static void SetupCookingRoutes(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/cookingUser", (HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                return Results.Json(user?.House?.CookingUser?.UserName ?? "");
-            }).WithName("CookingUser").WithOpenApi();
+            app.MapOut("cookingUser", user => user.House?.CookingUser?.UserName ?? "");
 
-            app.MapGet("/cooking", (HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                return Results.Json(user?.House?.CookingUser == user);
-            }).WithName("Cooking").WithOpenApi();
+            app.MapInOut(
+                "cooking",
+                user => user.House?.CookingUser == user,
+                (cooking, user) => user.SetCookingStatus(cooking) || true
+            );
 
-            app.MapPost("/cooking", ([FromBody] bool cooking, HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                cooking = user?.SetCookingStatus(cooking) ?? false;
-                db.SaveChanges();
-                return Results.Json(cooking);
-            }).WithName("SetCooking").WithOpenApi();
+            app.MapInOut(
+                "cookingTotal",
+                user => user.House?.CookingPrice.ToMoney() ?? 0,
+                (total, user) =>
+                {
+                    if (user.IsCooking())
+                        user.House!.CookingPrice = total.ToCents();
+                }
+            );
 
-            app.MapGet("/cookingTotal", (HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                return Results.Json(user?.House?.CookingPrice.ToMoney() ?? 0);
-            }).WithName("CookingTotal").WithOpenApi();
+            app.MapInOut(
+                "cookingDescription",
+                user => user.House?.CookingDescription ?? "",
+                (desc, user) =>
+                {
+                    if (user.IsCooking())
+                        user.House!.CookingDescription = desc;
+                }
+            );
 
-            app.MapPost("/cookingTotal", ([FromBody] decimal total, HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                if (user == null)
-                    return Results.Json(0);
-                var house = user?.House;
-                if (house == null)
-                    return Results.Json(0);
-                if (!user!.IsCooking())
-                    return Results.Json(house.CookingPrice.ToMoney());
-                house.CookingPrice = total.ToCents();
-                db.SaveChanges();
-                return Results.Json(house.CookingPrice.ToMoney());
-            }).WithName("SetCookingTotal").WithOpenApi();
-
-            app.MapGet("/cookingDescription", (HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                return Results.Json(user?.House?.CookingDescription ?? "");
-            }).WithName("CookingDescription").WithOpenApi();
-
-            app.MapPost("/cookingDescription", ([FromBody] string desc, HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                var house = user?.House;
-                if (house == null)
-                    return Results.Json("");
-                if (user?.IsCooking() != true)
-                    return Results.Json(house.CookingDescription);
-                house.CookingDescription = desc;
-                db.SaveChanges();
-                return Results.Json(house.CookingDescription);
-            }).WithName("SetCookingDescription").WithOpenApi();
-
-            app.MapGet("/eatingList", (HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                return Results.Json(user?.House?.Users
-                    .Where(u => u.EatingTotalPeople > 0)
-                    .Select(u => new EatingPerson(
-                        u.UserName ?? "",
-                        u.EatingTotalPeople,
-                        u.CookingPoints(),
-                        u.Diet
-                    )
-                ).ToArray() ?? []);
-            }).WithName("EatingList").WithOpenApi();
+            app.MapOut(
+                "eatingList",
+                user =>
+                    user.House?.Users.Where(u => u.EatingTotalPeople > 0)
+                        .Select(u => new EatingPerson(
+                            u.UserName ?? "",
+                            u.EatingTotalPeople,
+                            u.CookingPoints(),
+                            u.Diet
+                        ))
+                        .ToArray() ?? []
+            );
         }
     }
 }

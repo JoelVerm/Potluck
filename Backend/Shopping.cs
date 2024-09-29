@@ -5,7 +5,13 @@ namespace Backend_Example
 {
     public static class Shopping
     {
-        private class Transaction(string to, string[] from, string description, decimal money, int points)
+        private class Transaction(
+            string to,
+            string[] from,
+            string description,
+            decimal money,
+            int points
+        )
         {
             public string To { get; set; } = to;
             public string[] From { get; set; } = from;
@@ -16,55 +22,49 @@ namespace Backend_Example
 
         public static void SetupShoppingRoutes(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/shoppingList", (HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                return Results.Json(user?.House?.ShoppingList ?? "");
-            }).WithName("ShoppingList").WithOpenApi();
+            app.MapInOut(
+                "shoppingList",
+                user => user.House?.ShoppingList ?? "",
+                (shoppingList, user) =>
+                {
+                    if (user.House != null)
+                        user.House.ShoppingList = shoppingList;
+                }
+            );
 
-            app.MapPost("/shoppingList", ([FromBody] string shoppingList, HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                var house = user?.House;
-                if (house == null)
-                    return Results.Json("");
-                house.ShoppingList = shoppingList;
-                db.SaveChanges();
-                return Results.Json(house.ShoppingList);
-            }).WithName("SetShoppingList").WithOpenApi();
+            app.MapOut(
+                "allPeople",
+                user => user.House?.Users.Select(u => u.UserName).ToArray() ?? []
+            );
 
-            app.MapGet("/allPeople", (HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                return Results.Json(user?.House?.Users.Select(u => u.UserName).ToArray() ?? []);
-            }).WithName("AllPeople").WithOpenApi();
+            app.MapOut(
+                "transactions",
+                user =>
+                    user.House?.Transactions.Select(t => new Transaction(
+                            t.ToUser?.UserName ?? (t.IsPenalty ? "Penalty" : ""),
+                            t.Users.Select(u => u?.UserName ?? "").ToArray(),
+                            t.Description,
+                            t.EuroCents.ToMoney(),
+                            t.CookingPoints
+                        ))
+                        .ToArray() ?? []
+            );
 
-            app.MapGet("/transactions", (HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                return Results.Json(user?.House?.Transactions
-                    .Select(t => new Transaction(
-                        t.ToUser?.UserName ?? (t.IsPenalty ? "Penalty" : ""),
-                        t.Users.Select(u => u?.UserName ?? "").ToArray(),
-                        t.Description, (decimal)t.EuroCents / 100,
-                        t.CookingPoints
-                    )
-                ).ToArray() ?? []);
-            }).WithName("Transactions").WithOpenApi();
-
-            app.MapPost("/addTransaction", (Transaction transaction, HttpContext context, PotluckDb db) =>
-            {
-                var user = db.GetUser(context);
-                if (user == null)
-                    return Results.Json(false);
-                var house = user?.House;
-                if (house == null)
-                    return Results.Json(false);
-                var success = house.AddTransaction(user.UserName, transaction.From, transaction.Description, transaction.Money, transaction.Points);
-                db.SaveChanges();
-                return Results.Json(success);
-            }).WithName("AddTransaction").WithOpenApi();
-
+            app.MapIn<Transaction>(
+                "addTransaction",
+                (transaction, user) =>
+                {
+                    if (user.House == null)
+                        return false;
+                    return user.House.AddTransaction(
+                        user.UserName,
+                        transaction.From,
+                        transaction.Description,
+                        transaction.Money,
+                        transaction.Points
+                    );
+                }
+            );
         }
     }
 }
