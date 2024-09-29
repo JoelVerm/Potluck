@@ -22,12 +22,14 @@ export function activeResource<T>(
     postUrl?: string
 ): ActiveResource<T> {
     postUrl ??= getUrl
-    const [value, mutate] = pollingResource<T>(getUrl)
+    const [value, mutate, registerUpdate, updateValid] =
+        pollingResource<T>(getUrl)
     const update = (updater: ResourceUpdate<T>) => {
         mutate((original?: T) => {
             const newValue = isFunction<ResourceUpdater<T>>(updater)
                 ? updater(original)
                 : updater
+            const updateId = registerUpdate()
             fetch(postUrl, {
                 method: 'POST',
                 body: JSON.stringify(newValue),
@@ -37,7 +39,9 @@ export function activeResource<T>(
                 }
             })
                 .then(res => res.json())
-                .then(newValue => mutate(newValue))
+                .then(newValue => {
+                    if (updateValid(updateId)) mutate(newValue)
+                })
             return newValue
         })
     }
@@ -45,12 +49,18 @@ export function activeResource<T>(
 }
 
 export function pollingResource<T>(getUrl: string) {
-    const [value, { mutate, refetch }] = createResource<T>(() =>
-        fetch(getUrl).then(res => res.json())
-    )
+    let updateCounter = 0
+    const registerUpdate = () => ++updateCounter
+    const updateValid = (id: number) => updateCounter === id
+    const [value, { mutate, refetch }] = createResource<T>(async () => {
+        const updateId = updateCounter
+        const result = await fetch(getUrl).then(res => res.json())
+        if (updateValid(updateId)) return result
+        throw false
+    })
     const timer = setInterval(() => {
         refetch()
     }, 2000)
     onCleanup(() => clearInterval(timer))
-    return [value, mutate] as const
+    return [value, mutate, registerUpdate, updateValid] as const
 }

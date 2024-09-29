@@ -45,7 +45,7 @@ namespace Backend_Example
             app.MapGet("/homeStatusList", (HttpContext context, PotluckDb db) =>
             {
                 var user = db.GetUser(context);
-                return Results.Json(user?.House?.Users.Select(u => HomeStatus[u.AtHomeStatus]).ToArray() ?? []);
+                return Results.Json(user?.House?.Users.ToDictionary(u => u.UserName!, u => HomeStatus[u.AtHomeStatus]) ?? []);
             }).WithName("HomeStatusList").WithOpenApi();
         }
     }
