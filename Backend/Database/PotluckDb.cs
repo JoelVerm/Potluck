@@ -20,11 +20,13 @@ namespace Backend_Example.Database
         {
             base.OnConfiguring(optionsBuilder);
             optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=Potluck;Integrated Security=True;");
+            optionsBuilder.UseLazyLoadingProxies();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<User>()
                 .HasMany(u => u.TransactionUsers)
                 .WithOne(tu => tu.User)

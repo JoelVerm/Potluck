@@ -25,10 +25,10 @@ const NumberRow: Component<{
             <NumberField
                 class="w-36"
                 onRawValueChange={props.setValue}
-                value={props.value}
+                rawValue={props.value}
                 minValue={props.min ?? 0}
                 maxValue={props.max ?? 100}
-                step={props.step ?? 1}
+                step={props.step ?? 1.0}
                 disabled={!(props.enabled ?? true)}
             >
                 <div class="relative">

@@ -6,13 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import Home from './Home'
 import Cooking from './Cooking'
 import Shopping from './Shopping'
+import Settings from './Settings'
 
 const App: Component = () => {
     const tabs = {
         Home: <Home />,
         Cooking: <Cooking />,
         Shopping: <Shopping />,
-        Settings: <></>
+        Settings: <Settings />
     }
     const tabsStyle = `grid-template-columns: repeat(${
         Object.keys(tabs).length

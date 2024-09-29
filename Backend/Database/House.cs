@@ -9,10 +9,10 @@ namespace Backend_Example.Database
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public List<User> Users { get; set; } = [];
-        public List<Transaction> Transactions { get; set; } = [];
-        public string CookingUserId { get; set; }
-        public User? CookingUser { get; set; }
+        public virtual List<User> Users { get; set; } = [];
+        public virtual List<Transaction> Transactions { get; set; } = [];
+        public string? CookingUserId { get; set; }
+        public virtual User? CookingUser { get; set; }
         public int CookingPrice { get; set; } = 0;
         public string CookingDescription { get; set; } = "";
         public string ShoppingList { get; set; } = "";

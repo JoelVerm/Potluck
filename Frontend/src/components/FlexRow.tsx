@@ -11,7 +11,7 @@ const FlexRow: Component<FlexProps> = props => {
         props
     )
 
-    return <Flex {...finalProps} class="gap-2"></Flex>
+    return <Flex {...finalProps} class="gap-2 w-full"></Flex>
 }
 
 export default FlexRow

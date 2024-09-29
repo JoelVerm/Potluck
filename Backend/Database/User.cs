@@ -9,10 +9,10 @@ namespace Backend_Example.Database
         public int AtHomeStatus { get; set; } = 0;
         public int EatingTotalPeople { get; set; } = 0;
         public string Diet { get; set; } = "";
-        public House? House { get; set; }
-        public List<TransactionUser> TransactionUsers { get; set; } = [];
-        public List<Transaction> Transactions { get; set; } = [];
-        public List<Transaction> GottenTransactions { get; set; } = [];
+        public virtual House? House { get; set; }
+        public virtual List<TransactionUser> TransactionUsers { get; set; } = [];
+        public virtual List<Transaction> Transactions { get; set; } = [];
+        public virtual List<Transaction> GottenTransactions { get; set; } = [];
 
         public bool IsCooking()
         {
@@ -32,7 +32,7 @@ namespace Backend_Example.Database
             return cooking;
         }
 
-        public int CookingPoints() => Transactions.Sum(t => t.PerUser().cookingPoints);
-        public int EuroCents() => Transactions.Sum(t => t.PerUser().euroCents);
+        public int CookingPoints() => Transactions.Where(t => t.ToUser == this).Sum(t => t.CookingPoints) - Transactions.Sum(t => t.PerUser().cookingPoints);
+        public int EuroCents() => Transactions.Where(t => t.ToUser == this).Sum(t => t.EuroCents) - Transactions.Sum(t => t.PerUser().euroCents);
     }
 }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend_Example.Migrations
 {
     [DbContext(typeof(PotluckDb))]
-    [Migration("20240927133955_Start")]
+    [Migration("20240929164243_Start")]
     partial class Start
     {
         /// <inheritdoc />

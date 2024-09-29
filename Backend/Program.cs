@@ -3,6 +3,7 @@ using Backend_Example.Database;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -46,6 +47,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PotluckDb>();
+    db.Database.Migrate();
+}
+
 app.MapIdentityApi<User>();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -55,5 +62,6 @@ var authed = app.MapGroup("").RequireAuthorization();
 authed.SetupHomeRoutes();
 authed.SetupCookingRoutes();
 authed.SetupShoppingRoutes();
+authed.SetupSettingsRoutes();
 
 app.Run();
