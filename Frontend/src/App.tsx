@@ -3,11 +3,11 @@ import type { Component } from 'solid-js'
 import { For, Show } from 'solid-js'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 
-import Home from '~/Home'
 import Cooking from '~/Cooking'
-import Shopping from '~/Shopping'
-import Settings from '~/Settings'
+import Home from '~/Home'
 import Login from '~/Login'
+import Settings from '~/Settings'
+import Shopping from '~/Shopping'
 
 import { loggedIn } from '~/lib/activeResource'
 

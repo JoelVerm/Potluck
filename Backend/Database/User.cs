@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend_Example.Database
 {
-    public class User: IdentityUser
+    public class User : IdentityUser
     {
         public int AtHomeStatus { get; set; } = 0;
         public int EatingTotalPeople { get; set; } = 0;
@@ -32,7 +32,12 @@ namespace Backend_Example.Database
             return cooking;
         }
 
-        public int CookingPoints() => Transactions.Where(t => t.ToUser == this).Sum(t => t.CookingPoints) - Transactions.Sum(t => t.PerUser().cookingPoints);
-        public int EuroCents() => Transactions.Where(t => t.ToUser == this).Sum(t => t.EuroCents) - Transactions.Sum(t => t.PerUser().euroCents);
+        public int CookingPoints() =>
+            Transactions.Where(t => t.ToUser == this).Sum(t => t.CookingPoints)
+            - Transactions.Sum(t => t.PerUser().cookingPoints);
+
+        public int EuroCents() =>
+            Transactions.Where(t => t.ToUser == this).Sum(t => t.EuroCents)
+            - Transactions.Sum(t => t.PerUser().euroCents);
     }
 }

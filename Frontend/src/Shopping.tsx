@@ -1,41 +1,16 @@
 import type { Component } from 'solid-js'
 
-import {
-    createResource,
-    createSignal,
-    createEffect,
-    For,
-    Index,
-    createMemo
-} from 'solid-js'
+import { createEffect, createSignal, For, Index } from 'solid-js'
 
-import { Flex } from '~/components/ui/flex'
-import {
-    Switch,
-    SwitchControl,
-    SwitchLabel,
-    SwitchThumb
-} from '~/components/ui/switch'
-import {
-    NumberField,
-    NumberFieldDecrementTrigger,
-    NumberFieldIncrementTrigger,
-    NumberFieldInput
-} from '~/components/ui/number-field'
-import {
-    TextField,
-    TextFieldTextArea,
-    TextFieldInput,
-    TextFieldLabel
-} from '~/components/ui/text-field'
+import { Button } from '~/components/ui/button'
 import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle
 } from '~/components/ui/card'
+import { Flex } from '~/components/ui/flex'
 import {
     Select,
     SelectContent,
@@ -43,8 +18,11 @@ import {
     SelectTrigger,
     SelectValue
 } from '~/components/ui/select'
-import { Separator } from '~/components/ui/separator'
-import { Button } from '~/components/ui/button'
+import {
+    TextField,
+    TextFieldInput,
+    TextFieldTextArea
+} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'

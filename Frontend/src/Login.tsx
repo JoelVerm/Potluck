@@ -1,38 +1,15 @@
 import type { Component } from 'solid-js'
 
-import {
-    createResource,
-    createSignal,
-    createEffect,
-    For,
-    Index
-} from 'solid-js'
-import { Flex } from '~/components/ui/flex'
-import {
-    NumberField,
-    NumberFieldDecrementTrigger,
-    NumberFieldIncrementTrigger,
-    NumberFieldInput
-} from '~/components/ui/number-field'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '~/components/ui/select'
+import { createSignal } from 'solid-js'
+import { Button } from '~/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import {
     TextField,
-    TextFieldInput,
-    TextFieldLabel,
-    TextFieldErrorMessage
+    TextFieldErrorMessage,
+    TextFieldInput
 } from '~/components/ui/text-field'
-import { Button } from '~/components/ui/button'
 
 import FlexRow from '~/components/FlexRow'
-import NumberRow from '~/components/NumberRow'
-import { activeResource, pollingResource } from '~/lib/activeResource'
 
 const isValidEmail = (email: string) => /.+@.+\..+/.test(email)
 const isValidPassword = (password: string) => /[a-zA-Z]{15,}/.test(password)

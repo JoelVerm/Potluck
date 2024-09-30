@@ -1,19 +1,7 @@
 import type { Component } from 'solid-js'
 
-import {
-    createResource,
-    createSignal,
-    createEffect,
-    For,
-    Index
-} from 'solid-js'
+import { For, Index } from 'solid-js'
 import { Flex } from '~/components/ui/flex'
-import {
-    NumberField,
-    NumberFieldDecrementTrigger,
-    NumberFieldIncrementTrigger,
-    NumberFieldInput
-} from '~/components/ui/number-field'
 import {
     Select,
     SelectContent,

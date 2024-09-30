@@ -1,62 +1,24 @@
 import type { Component } from 'solid-js'
 
-import {
-    createResource,
-    createSignal,
-    createEffect,
-    For,
-    Index,
-    createMemo
-} from 'solid-js'
+import { createSignal, For } from 'solid-js'
 
-import { Flex } from '~/components/ui/flex'
-import {
-    Switch,
-    SwitchControl,
-    SwitchLabel,
-    SwitchThumb
-} from '~/components/ui/switch'
-import {
-    NumberField,
-    NumberFieldDecrementTrigger,
-    NumberFieldIncrementTrigger,
-    NumberFieldInput
-} from '~/components/ui/number-field'
-import {
-    TextField,
-    TextFieldTextArea,
-    TextFieldInput,
-    TextFieldLabel
-} from '~/components/ui/text-field'
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle
-} from '~/components/ui/card'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '~/components/ui/select'
-import { Separator } from '~/components/ui/separator'
 import { Button } from '~/components/ui/button'
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger
 } from '~/components/ui/dialog'
+import { Flex } from '~/components/ui/flex'
+import {
+    TextField,
+    TextFieldInput,
+    TextFieldLabel
+} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
-import NumberRow from '~/components/NumberRow'
 import { activeResource, pollingResource } from '~/lib/activeResource'
 
 const Settings: Component = () => {

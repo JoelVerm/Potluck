@@ -1,31 +1,9 @@
 import type { Component } from 'solid-js'
 
-import {
-    createResource,
-    createSignal,
-    createEffect,
-    For,
-    Index
-} from 'solid-js'
+import { For } from 'solid-js'
 import { Flex } from '~/components/ui/flex'
-import {
-    Switch,
-    SwitchControl,
-    SwitchLabel,
-    SwitchThumb
-} from '~/components/ui/switch'
-import {
-    NumberField,
-    NumberFieldDecrementTrigger,
-    NumberFieldIncrementTrigger,
-    NumberFieldInput
-} from '~/components/ui/number-field'
-import {
-    TextField,
-    TextFieldTextArea,
-    TextFieldInput,
-    TextFieldLabel
-} from '~/components/ui/text-field'
+import { Switch, SwitchControl, SwitchThumb } from '~/components/ui/switch'
+import { TextField, TextFieldInput } from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
