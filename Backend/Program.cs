@@ -1,11 +1,11 @@
+using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Backend_Example;
 using Backend_Example.Database;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,21 +17,21 @@ builder.Services.AddSwaggerGen();
 // Temporary CORS policy to allow all origins
 builder.Services.AddCors(policyBuilder =>
     policyBuilder.AddDefaultPolicy(policy =>
-        policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod())
+        policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod()
+    )
 );
 
 builder.Services.AddDbContext<PotluckDb>();
 builder.Services.AddAuthentication().AddCookie();
 builder.Services.AddAuthorization();
-builder.Services.AddIdentityApiEndpoints<User>()
-    .AddEntityFrameworkStores<PotluckDb>();
+builder.Services.AddIdentityApiEndpoints<User>().AddEntityFrameworkStores<PotluckDb>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.Password.RequireUppercase = true;
     options.Password.RequireLowercase = true;
     options.Password.RequiredLength = 15;
-    options.Password.RequiredUniqueChars = 5;
+    options.Password.RequiredUniqueChars = 1;
     options.Password.RequireDigit = false;
     options.Password.RequireNonAlphanumeric = false;
 });
