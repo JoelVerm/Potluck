@@ -19,8 +19,12 @@ namespace Backend_Example.Database
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
+
+            var conn = Environment.GetEnvironmentVariable("ConnectionString");
+            if (conn != null)
+                Console.WriteLine($"Using connection string: {conn}");
             optionsBuilder.UseSqlServer(
-                "Server=(localdb)\\MSSQLLocalDB;Database=Potluck;Integrated Security=True;"
+                conn ?? "Server=(localdb)\\MSSQLLocalDB;Database=Potluck;Integrated Security=True;"
             );
             optionsBuilder.UseLazyLoadingProxies();
         }
