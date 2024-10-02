@@ -21,9 +21,14 @@ interface HomeStatusList {
     [index: string]: HomeStatus
 }
 
+interface TotalBalanceResponse {
+    cookingPoints: number
+    euroCents: number
+}
+
 const Home: Component = () => {
     const [totalBalance] =
-        pollingResource<[number, number]>('/api/totalBalance')
+        pollingResource<TotalBalanceResponse>('/api/totalBalance')
     const [eatingTotal, setEatingTotal] =
         activeResource<number>('/api/eatingTotal')
     const [homeStatus, setHomeStatus] =
@@ -40,8 +45,8 @@ const Home: Component = () => {
             class="gap-2"
         >
             <h1>
-                Your balance: 🍴{totalBalance()?.[0] ?? 0} 🪙
-                {totalBalance()?.[1] ?? 0}
+                Your balance: 🍴{totalBalance()?.cookingPoints ?? 0} 🪙
+                {totalBalance()?.euroCents ?? 0}
             </h1>
             <NumberRow
                 text="Eating with"

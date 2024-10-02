@@ -126,6 +126,18 @@ const AddUserDialog: Component = () => {
     const [open, setOpen] = createSignal(false)
     const [userName, setUserName] = createSignal('')
 
+    const addMember = () => {
+        fetch('/api/addHouseMember', {
+            method: 'POST',
+            body: JSON.stringify(userName()),
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            }
+        })
+        setOpen(false)
+    }
+
     return (
         <Dialog open={open()} onOpenChange={setOpen}>
             <DialogTrigger as={Button}>Add house member</DialogTrigger>
@@ -133,32 +145,22 @@ const AddUserDialog: Component = () => {
                 <DialogHeader>
                     <DialogTitle>Add house member</DialogTitle>
                 </DialogHeader>
-                <TextField class="grid grid-cols-4 items-center gap-4">
-                    <TextFieldLabel class="text-right">Name</TextFieldLabel>
-                    <TextFieldInput
-                        value={userName()}
-                        onInput={e => setUserName(e.currentTarget.value)}
-                        type="text"
-                    />
-                </TextField>
-                <DialogFooter>
-                    <Button
-                        type="submit"
-                        onClick={() => {
-                            fetch('/api/addHouseMember', {
-                                method: 'POST',
-                                body: JSON.stringify(userName()),
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Accept: 'application/json'
-                                }
-                            })
-                            setOpen(false)
-                        }}
-                    >
+                <FlexRow>
+                    <TextField class="w-full">
+                        <TextFieldInput
+                            value={userName()}
+                            onInput={e => setUserName(e.currentTarget.value)}
+                            onKeyDown={(e: KeyboardEvent) => {
+                                if (e.key === 'Enter') addMember()
+                            }}
+                            type="text"
+                            placeholder="E-mail"
+                        />
+                    </TextField>
+                    <Button type="submit" onClick={addMember}>
                         Add
                     </Button>
-                </DialogFooter>
+                </FlexRow>
             </DialogContent>
         </Dialog>
     )

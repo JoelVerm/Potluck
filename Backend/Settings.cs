@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Backend_Example.Database;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend_Example
 {
@@ -62,11 +63,14 @@ namespace Backend_Example
                 {
                     if (user.House == null)
                         return false;
-                    var db = app.ServiceProvider.GetRequiredService<PotluckDb>();
-                    var addUser = db.Users.Find(name);
+                    using var scope = app.ServiceProvider.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<PotluckDb>();
+                    var addUser = db.Users.First(u => u.UserName == name);
                     if (addUser == null)
                         return false;
-                    user.House.Users.Add(addUser);
+                    var house = db.Houses.First(h => h.Id == user.House.Id);
+                    house.Users.Add(addUser);
+                    db.SaveChanges();
                     return true;
                 }
             );
