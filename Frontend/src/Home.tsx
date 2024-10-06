@@ -23,7 +23,7 @@ interface HomeStatusList {
 
 interface TotalBalanceResponse {
     cookingPoints: number
-    euroCents: number
+    euros: number
 }
 
 const Home: Component = () => {
@@ -46,7 +46,7 @@ const Home: Component = () => {
         >
             <h1>
                 Your balance: 🍴{totalBalance()?.cookingPoints ?? 0} 🪙
-                {totalBalance()?.euroCents ?? 0}
+                {totalBalance()?.euros ?? 0}
             </h1>
             <NumberRow
                 text="Eating with"

@@ -13,13 +13,5 @@ namespace Backend_Example.Database
         public bool IsPenalty { get; set; } = false;
         public virtual List<TransactionUser> TransactionUsers { get; set; } = [];
         public virtual List<User?> Users { get; set; } = [];
-
-        public (int euroCents, int cookingPoints) PerUser()
-        {
-            var count = Users.Count;
-            if (count == 0)
-                return (0, 0);
-            return (EuroCents / count, CookingPoints / count);
-        }
     }
 }

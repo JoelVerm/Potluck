@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
-using Backend_Example.Database;
+using Backend_Example.Logic;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,69 +12,23 @@ namespace Backend_Example
         {
             app.MapInOut(
                 "dietPreferences",
-                user => user.Diet,
-                (preference, user) => user.Diet = preference
+                (User user) => user.Diet(),
+                (preference, user) => user.SetDiet(preference)
             );
 
             app.MapInOut(
                 "houseName",
-                user => user.House?.Name ?? "",
-                (name, user) =>
-                {
-                    if (user.House == null)
-                        return;
-                    user.House.Name = name;
-                }
+                (House house) => house.HouseName(),
+                (name, house) => house.SetHouseName(name)
             );
 
-            app.MapOut(
-                "houseMembers",
-                user => user.House?.Users.Select(u => u.UserName).ToArray() ?? []
-            );
+            app.MapOut("houseMembers", (House house) => house.AllPeople());
 
-            app.MapIn<string>(
-                "createHouse",
-                (name, user) =>
-                {
-                    if (user.House != null)
-                        return false;
-                    user.House = new House { Name = name };
-                    user.House.Users.Add(user);
-                    return true;
-                }
-            );
+            app.MapIn("createHouse", (string name, House house) => house.CreateNew(name));
 
-            app.MapIn<string>(
-                "removeHouseMember",
-                (name, user) =>
-                {
-                    if (user.House == null)
-                        return false;
-                    var removeUser = user.House.Users.Find(u => u.UserName == name);
-                    if (removeUser == null)
-                        return false;
-                    user.House.Users.Remove(removeUser);
-                    return true;
-                }
-            );
+            app.MapIn("addHouseMember", (string name, House house) => house.AddUser(name));
 
-            app.MapIn<string>(
-                "addHouseMember",
-                (name, user) =>
-                {
-                    if (user.House == null)
-                        return false;
-                    using var scope = app.ServiceProvider.CreateScope();
-                    var db = scope.ServiceProvider.GetRequiredService<PotluckDb>();
-                    var addUser = db.Users.First(u => u.UserName == name);
-                    if (addUser == null)
-                        return false;
-                    var house = db.Houses.First(h => h.Id == user.House.Id);
-                    house.Users.Add(addUser);
-                    db.SaveChanges();
-                    return true;
-                }
-            );
+            app.MapIn("removeHouseMember", (string name, House house) => house.RemoveUser(name));
         }
     }
 }

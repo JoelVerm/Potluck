@@ -1,47 +1,37 @@
 ﻿using System.Collections.Immutable;
-using Backend_Example.Database;
+using Backend_Example.Logic;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend_Example
 {
     public static class Home
     {
-        private class TotalBalanceResponse(int cookingPoints, decimal euroCents)
+        private class TotalBalanceResponse((int cookingPoints, decimal euros) balance)
         {
-            public int CookingPoints { get; set; } = cookingPoints;
-            public decimal EuroCents { get; set; } = euroCents;
+            public int CookingPoints { get; set; } = balance.cookingPoints;
+            public decimal Euros { get; set; } = balance.euros;
         }
-
-        private static readonly string[] HomeStatus = ["At home", "Away for a bit", "Out of town"];
 
         public static void SetupHomeRoutes(this IEndpointRouteBuilder app)
         {
             app.MapOut(
                 "totalBalance",
-                user => new TotalBalanceResponse(user.CookingPoints(), user.EuroCents().ToMoney())
+                (Transactions transactions) => new TotalBalanceResponse(transactions.Balance())
             );
 
             app.MapInOut(
                 "eatingTotal",
-                user => user.EatingTotalPeople,
-                (eatingTotal, user) => user.EatingTotalPeople = eatingTotal
+                (User user) => user.EatingTotalPeople(),
+                (eatingTotal, user) => user.SetEatingTotalPeople(eatingTotal)
             );
 
             app.MapInOut(
                 "homeStatus",
-                user => HomeStatus[user.AtHomeStatus],
-                (homeStatus, user) =>
-                    user.AtHomeStatus = HomeStatus.ToImmutableList().IndexOf(homeStatus)
+                (User user) => user.HomeStatus(),
+                (homeStatus, user) => user.SetHomeStatus(homeStatus)
             );
 
-            app.MapOut(
-                "homeStatusList",
-                user =>
-                    user.House?.Users.ToDictionary(
-                        u => u.UserName!,
-                        u => HomeStatus[u.AtHomeStatus]
-                    ) ?? []
-            );
+            app.MapOut("homeStatusList", (House house) => house.HomeStatusList());
         }
     }
 }

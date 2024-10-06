@@ -1,4 +1,5 @@
 ﻿using Backend_Example.Database;
+using Backend_Example.Logic;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend_Example
@@ -9,11 +10,12 @@ namespace Backend_Example
 
         public static decimal ToMoney(this int value) => value / 100m;
 
-        public static RouteHandlerBuilder MapOut<T>(
+        public static RouteHandlerBuilder MapOut<TL, T>(
             this IEndpointRouteBuilder app,
             string path,
-            Func<User, T> getter
+            Func<TL, T> getter
         )
+            where TL : LogicBase, new()
         {
             return app.MapGet(
                     $"/{path}",
@@ -22,18 +24,20 @@ namespace Backend_Example
                         var user = db.GetUser(context);
                         if (user == null)
                             return Results.Json(default(T));
-                        return Results.Json(getter(user));
+                        var logic = LogicBase.Create<TL>(user, db);
+                        return Results.Json(getter(logic));
                     }
                 )
                 .WithName(path[0].ToString().ToUpper() + path[1..])
                 .WithOpenApi();
         }
 
-        public static RouteHandlerBuilder MapIn<T>(
+        public static RouteHandlerBuilder MapIn<TL, T>(
             this IEndpointRouteBuilder app,
             string path,
-            Func<T, User, bool> setter
+            Func<T, TL, bool> setter
         )
+            where TL : LogicBase, new()
         {
             return app.MapPost(
                     $"/{path}",
@@ -42,8 +46,8 @@ namespace Backend_Example
                         var user = db.GetUser(context);
                         if (user == null)
                             return Results.Json(false);
-                        var result = setter(value, user);
-                        db.SaveChanges();
+                        var logic = LogicBase.Create<TL>(user, db);
+                        var result = setter(value, logic);
                         return Results.Json(result);
                     }
                 )
@@ -51,12 +55,28 @@ namespace Backend_Example
                 .WithOpenApi();
         }
 
-        public static (RouteHandlerBuilder get, RouteHandlerBuilder post) MapInOut<T>(
+        public static RouteHandlerBuilder MapIn<TL, T>(
             this IEndpointRouteBuilder app,
             string path,
-            Func<User, T> getter,
-            Func<T, User, bool> setter
+            Action<T, TL> setter
         )
+            where TL : LogicBase, new() =>
+            app.MapIn<TL, T>(
+                path,
+                (value, logic) =>
+                {
+                    setter(value, logic);
+                    return true;
+                }
+            );
+
+        public static (RouteHandlerBuilder get, RouteHandlerBuilder post) MapInOut<TL, T>(
+            this IEndpointRouteBuilder app,
+            string path,
+            Func<TL, T> getter,
+            Func<T, TL, bool> setter
+        )
+            where TL : LogicBase, new()
         {
             return (
                 app.MapGet(
@@ -66,7 +86,8 @@ namespace Backend_Example
                             var user = db.GetUser(context);
                             if (user == null)
                                 return Results.Json(default(T));
-                            return Results.Json(getter(user));
+                            var logic = LogicBase.Create<TL>(user, db);
+                            return Results.Json(getter(logic));
                         }
                     )
                     .WithName(path[0].ToString().ToUpper() + path[1..])
@@ -78,9 +99,9 @@ namespace Backend_Example
                             var user = db.GetUser(context);
                             if (user == null)
                                 return Results.Json(value);
-                            var result = setter(value, user);
-                            db.SaveChanges();
-                            return Results.Json(result ? getter(user) : value);
+                            var logic = LogicBase.Create<TL>(user, db);
+                            var result = setter(value, logic);
+                            return Results.Json(result ? getter(logic) : value);
                         }
                     )
                     .WithName("Set" + path[0].ToString().ToUpper() + path[1..])
@@ -88,18 +109,19 @@ namespace Backend_Example
             );
         }
 
-        public static (RouteHandlerBuilder get, RouteHandlerBuilder post) MapInOut<T>(
+        public static (RouteHandlerBuilder get, RouteHandlerBuilder post) MapInOut<TL, T>(
             this IEndpointRouteBuilder app,
             string path,
-            Func<User, T> getter,
-            Action<T, User> setter
-        ) =>
+            Func<TL, T> getter,
+            Action<T, TL> setter
+        )
+            where TL : LogicBase, new() =>
             app.MapInOut(
                 path,
                 getter,
-                (value, user) =>
+                (value, logic) =>
                 {
-                    setter(value, user);
+                    setter(value, logic);
                     return true;
                 }
             );
