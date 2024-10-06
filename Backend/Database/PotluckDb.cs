@@ -4,16 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend_Example.Database
 {
-    public class PotluckDb : IdentityDbContext<User>
+    public class PotluckDb : IdentityDbContext<User>, IPotluckDb
     {
         public DbSet<User> Users { get; set; }
         public DbSet<House> Houses { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<TransactionUser> TransactionUsers { get; set; }
 
-        public User? GetUser(HttpContext context)
+        public User? GetUser(string? name)
         {
-            return Users.FirstOrDefault(u => u.UserName == context.User.Identity!.Name);
+            return Users.FirstOrDefault(u => u.UserName == name);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

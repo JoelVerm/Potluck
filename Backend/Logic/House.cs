@@ -21,8 +21,10 @@ namespace Backend_Example.Logic
         {
             if (_user.House == null)
                 return;
-            var addUser = _db.Users.First(u => u.UserName == name);
+            var addUser = _db.GetUser(name);
             if (addUser == null)
+                return;
+            if (_user.House.Users.Contains(addUser))
                 return;
             _user.House.Users.Add(addUser);
             _db.SaveChanges();
@@ -107,7 +109,7 @@ namespace Backend_Example.Logic
                     .Select(u => new EatingPerson(
                         u.UserName ?? "",
                         u.EatingTotalPeople,
-                        Transactions.Balance(u).cookingPoints,
+                        Transactions.BalanceFor(u).cookingPoints,
                         u.Diet
                     ))
                     .ToArray() ?? [];
@@ -120,8 +122,9 @@ namespace Backend_Example.Logic
 
         public void SetShoppingList(string list)
         {
-            if (_user.House != null)
-                _user.House.ShoppingList = list;
+            if (_user.House == null)
+                return;
+            _user.House.ShoppingList = list;
             _db.SaveChanges();
         }
 
@@ -132,8 +135,9 @@ namespace Backend_Example.Logic
 
         public void SetHouseName(string name)
         {
-            if (_user.House != null)
-                _user.House.Name = name;
+            if (_user.House == null)
+                return;
+            _user.House.Name = name;
             _db.SaveChanges();
         }
 

@@ -98,7 +98,15 @@ const Shopping: Component = () => {
                             fetch('/api/addTransaction', {
                                 method: 'POST',
                                 body: JSON.stringify({
-                                    from: peopleList(),
+                                    from: Object.entries(
+                                        peopleCountList()
+                                    ).reduce<string[]>(
+                                        (from, v) => [
+                                            ...from,
+                                            ...Array(v[1]).fill(v[0])
+                                        ],
+                                        []
+                                    ),
                                     description: description(),
                                     money: money(),
                                     points: points()

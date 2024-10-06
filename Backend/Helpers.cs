@@ -21,7 +21,7 @@ namespace Backend_Example
                     $"/{path}",
                     (HttpContext context, PotluckDb db) =>
                     {
-                        var user = db.GetUser(context);
+                        var user = db.GetUser(context.User.Identity!.Name);
                         if (user == null)
                             return Results.Json(default(T));
                         var logic = LogicBase.Create<TL>(user, db);
@@ -43,7 +43,7 @@ namespace Backend_Example
                     $"/{path}",
                     ([FromBody] T value, HttpContext context, PotluckDb db) =>
                     {
-                        var user = db.GetUser(context);
+                        var user = db.GetUser(context.User.Identity!.Name);
                         if (user == null)
                             return Results.Json(false);
                         var logic = LogicBase.Create<TL>(user, db);
@@ -83,7 +83,7 @@ namespace Backend_Example
                         $"/{path}",
                         (HttpContext context, PotluckDb db) =>
                         {
-                            var user = db.GetUser(context);
+                            var user = db.GetUser(context.User.Identity!.Name);
                             if (user == null)
                                 return Results.Json(default(T));
                             var logic = LogicBase.Create<TL>(user, db);
@@ -96,7 +96,7 @@ namespace Backend_Example
                         $"/{path}",
                         ([FromBody] T value, HttpContext context, PotluckDb db) =>
                         {
-                            var user = db.GetUser(context);
+                            var user = db.GetUser(context.User.Identity!.Name);
                             if (user == null)
                                 return Results.Json(value);
                             var logic = LogicBase.Create<TL>(user, db);

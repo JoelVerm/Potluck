@@ -58,9 +58,9 @@ namespace Backend_Example.Logic
             _db.SaveChanges();
         }
 
-        public (int cookingPoints, decimal euros) Balance() => Balance(_user);
+        public (int cookingPoints, decimal euros) Balance() => BalanceFor(_user);
 
-        public static (int cookingPoints, decimal euros) Balance(Database.User user)
+        public static (int cookingPoints, decimal euros) BalanceFor(Database.User user)
         {
             int euroCents = 0;
             int cookingPoints = 0;
@@ -73,7 +73,7 @@ namespace Backend_Example.Logic
             return (cookingPoints, euroCents.ToMoney());
         }
 
-        private static (int euroCents, int cookingPoints) BalanceFor(
+        public static (int euroCents, int cookingPoints) BalanceFor(
             Database.User user,
             Database.Transaction transaction
         )
@@ -85,13 +85,14 @@ namespace Backend_Example.Logic
                 euroCents += transaction.EuroCents;
                 cookingPoints += transaction.CookingPoints;
             }
-            if (transaction.Users.Contains(user))
+            int fromCount = transaction.Users.Count(u => u == user);
+            if (fromCount > 0)
             {
                 var count = transaction.Users.Count;
                 if (count > 0)
                 {
-                    euroCents -= transaction.EuroCents / count;
-                    cookingPoints -= transaction.CookingPoints / count;
+                    euroCents -= (transaction.EuroCents / count) * fromCount;
+                    cookingPoints -= (transaction.CookingPoints / count) * fromCount;
                 }
             }
             return (euroCents, cookingPoints);
