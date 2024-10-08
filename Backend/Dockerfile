@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build-env
+FROM --platform=linux/arm64 mcr.microsoft.com/dotnet/sdk:8.0-azurelinux3.0 AS build-env
 WORKDIR /app
 
 COPY ./Main ./
