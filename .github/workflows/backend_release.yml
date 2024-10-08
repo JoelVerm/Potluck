@@ -1,4 +1,4 @@
-name: Release
+name: Release backend
 
 on:
     push:
@@ -40,3 +40,4 @@ jobs:
               with:
                   push: true
                   tags: ${{ secrets.DOCKER_USERNAME }}/potluck-backend:latest
+                  context: ./Backend
