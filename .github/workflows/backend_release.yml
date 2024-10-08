@@ -37,9 +37,9 @@ jobs:
                   password: ${{ secrets.DOCKER_PASSWORD }}
             - name: Build and push Docker image
               run: |
-                  docker build
-                  -t ${{ secrets.DOCKER_USERNAME }}/potluck-backend:latest
-                  --output type=image,push=true
+                  docker build \
+                  -t ${{ secrets.DOCKER_USERNAME }}/potluck-backend:latest \
+                  -o "type=image,push=true" \
                   .
               working-directory: ./Backend
               
