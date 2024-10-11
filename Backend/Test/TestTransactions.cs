@@ -7,94 +7,82 @@ using DataUser = Backend_Example.Database.User;
 using LogicTransaction = Backend_Example.Logic.Transactions.Transaction;
 using LogicTransactions = Backend_Example.Logic.Transactions;
 
+[assembly: TestDataSourceDiscovery(TestDataSourceDiscoveryOption.DuringExecution)]
+
 namespace PotluckTest
 {
     [TestClass]
     public class TestTransactions
     {
-        [TestMethod]
-        public void BalanceForTransaction_Valid_OnlyTo()
-        {
-            // Arrange
-            var user = new DataUser { UserName = "Alice" };
-            var transaction = new DataTransaction
-            {
-                CookingPoints = 5,
-                EuroCents = 1234,
-                Users = [new DataUser { UserName = "Bob" }, new DataUser { UserName = "Charlie" }],
-                ToUser = user,
-            };
+        private static readonly DataUser alice = new() { UserName = "Alice" };
 
-            // Act
-            var (euroCents, cookingPoints) = LogicTransactions.BalanceFor(user, transaction);
-
-            // Assert
-            Assert.AreEqual(1234, euroCents);
-            Assert.AreEqual(5, cookingPoints);
-        }
-
-        [TestMethod]
-        public void BalanceForTransaction_Valid_OnlyFrom()
-        {
-            // Arrange
-            var user = new DataUser { UserName = "Alice" };
-            var transaction = new DataTransaction
-            {
-                CookingPoints = 5,
-                EuroCents = 1234,
-                Users = [user, new DataUser { UserName = "Bob" }],
-                ToUser = new DataUser { UserName = "Charlie" },
-            };
-
-            // Act
-            var (euroCents, cookingPoints) = LogicTransactions.BalanceFor(user, transaction);
-
-            // Assert
-            Assert.AreEqual(-1234 / 2, euroCents);
-            Assert.AreEqual(-5 / 2, cookingPoints);
-        }
-
-        [TestMethod]
-        public void BalanceForTransaction_Valid_FromMultiple()
-        {
-            // Arrange
-            var user = new DataUser { UserName = "Alice" };
-            var transaction = new DataTransaction
-            {
-                CookingPoints = 5,
-                EuroCents = 1234,
-                Users = [user, user, new DataUser { UserName = "Bob" }],
-                ToUser = new DataUser { UserName = "Charlie" },
-            };
-
-            // Act
-            var (euroCents, cookingPoints) = LogicTransactions.BalanceFor(user, transaction);
-
-            // Assert
-            Assert.AreEqual(-1234 / 3 * 2, euroCents);
-            Assert.AreEqual(-5 / 3 * 2, cookingPoints);
-        }
+        private static IEnumerable<object[]> TransactionTests { get; } =
+            [
+                [
+                    new DataTransaction()
+                    {
+                        CookingPoints = 5,
+                        EuroCents = 1234,
+                        Users =
+                        [
+                            new DataUser { UserName = "Bob" },
+                            new DataUser { UserName = "Charlie" },
+                        ],
+                        ToUser = alice,
+                    },
+                    1234,
+                    5,
+                ],
+                [
+                    new DataTransaction()
+                    {
+                        CookingPoints = 5,
+                        EuroCents = 1234,
+                        Users = [alice, new DataUser { UserName = "Bob" }],
+                        ToUser = new DataUser { UserName = "Charlie" },
+                    },
+                    -1234 / 2,
+                    -5 / 2,
+                ],
+                [
+                    new DataTransaction()
+                    {
+                        CookingPoints = 5,
+                        EuroCents = 1234,
+                        Users = [alice, alice, new DataUser { UserName = "Bob" }],
+                        ToUser = new DataUser { UserName = "Charlie" },
+                    },
+                    -1234 / 3 * 2,
+                    -5 / 3 * 2,
+                ],
+                [
+                    new DataTransaction()
+                    {
+                        CookingPoints = 5,
+                        EuroCents = 1234,
+                        Users = [alice, new DataUser { UserName = "Bob" }],
+                        ToUser = alice,
+                    },
+                    1234 - 1234 / 2,
+                    5 - 5 / 2,
+                ],
+            ];
 
         [TestMethod]
-        public void BalanceForTransaction_Valid_FromAndTo()
+        [DynamicData(nameof(TransactionTests))]
+        public void BalanceForTransaction_Parameterized(
+            DataTransaction transaction,
+            int expectedEuroCents,
+            int expectedCookingPoints
+        )
         {
             // Arrange
-            var user = new DataUser { UserName = "Alice" };
-            var transaction = new DataTransaction
-            {
-                CookingPoints = 5,
-                EuroCents = 1234,
-                Users = [user, new DataUser { UserName = "Bob" }],
-                ToUser = user,
-            };
 
             // Act
-            var (euroCents, cookingPoints) = LogicTransactions.BalanceFor(user, transaction);
+            var (euroCents, cookingPoints) = LogicTransactions.BalanceFor(alice, transaction);
 
             // Assert
-            var expectedEuroCents = 1234 - 1234 / 2;
             Assert.AreEqual(expectedEuroCents, euroCents);
-            var expectedCookingPoints = 5 - 5 / 2;
             Assert.AreEqual(expectedCookingPoints, cookingPoints);
         }
 

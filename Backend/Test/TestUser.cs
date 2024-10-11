@@ -9,7 +9,9 @@ namespace PotluckTest
     public class TestUser
     {
         [TestMethod]
-        public void SetEatingTotalPeople_Valid()
+        [DataRow(5, 5, 1)]
+        [DataRow(-1, 0, 0)]
+        public void SetEatingTotalPeople_Parameterized(int people, int result, int dbCalled)
         {
             // Arrange
             var user = new DataUser { };
@@ -17,15 +19,17 @@ namespace PotluckTest
             var logic = LogicBase.Create<LogicUser>(user, db);
 
             // Act
-            logic.SetEatingTotalPeople(5);
+            logic.SetEatingTotalPeople(people);
 
             // Assert
-            Assert.AreEqual(5, user.EatingTotalPeople);
-            Assert.AreEqual(1, db.SaveChangesTimesCalled);
+            Assert.AreEqual(result, user.EatingTotalPeople);
+            Assert.AreEqual(dbCalled, db.SaveChangesTimesCalled);
         }
 
         [TestMethod]
-        public void SetEatingTotalPeople_Invalid()
+        [DataRow("Away for a bit", 1, 1)]
+        [DataRow("Invalid status", 0, 0)]
+        public void SetHomeStatus_Parameterized(string status, int result, int dbCalled)
         {
             // Arrange
             var user = new DataUser { };
@@ -33,43 +37,11 @@ namespace PotluckTest
             var logic = LogicBase.Create<LogicUser>(user, db);
 
             // Act
-            logic.SetEatingTotalPeople(-1);
+            logic.SetHomeStatus(status);
 
             // Assert
-            Assert.AreEqual(0, user.EatingTotalPeople);
-            Assert.AreEqual(0, db.SaveChangesTimesCalled);
-        }
-
-        [TestMethod]
-        public void SetHomeStatus_Valid()
-        {
-            // Arrange
-            var user = new DataUser { };
-            var db = new MockDb();
-            var logic = LogicBase.Create<LogicUser>(user, db);
-
-            // Act
-            logic.SetHomeStatus("Away for a bit");
-
-            // Assert
-            Assert.AreEqual(1, user.AtHomeStatus);
-            Assert.AreEqual(1, db.SaveChangesTimesCalled);
-        }
-
-        [TestMethod]
-        public void SetHomeStatus_Invalid()
-        {
-            // Arrange
-            var user = new DataUser { };
-            var db = new MockDb();
-            var logic = LogicBase.Create<LogicUser>(user, db);
-
-            // Act
-            logic.SetHomeStatus("Invalid status");
-
-            // Assert
-            Assert.AreEqual(0, user.AtHomeStatus);
-            Assert.AreEqual(0, db.SaveChangesTimesCalled);
+            Assert.AreEqual(result, user.AtHomeStatus);
+            Assert.AreEqual(dbCalled, db.SaveChangesTimesCalled);
         }
 
         [TestMethod]
