@@ -12,7 +12,11 @@ import {
 import FlexRow from '~/components/FlexRow'
 
 const isValidEmail = (email: string) => /.+@.+\..+/.test(email)
-const isValidPassword = (password: string) => /[a-zA-Z]{15,}/.test(password)
+const isValidPassword = (password: string) =>
+    password.length >= 15 &&
+    password.match(/[a-z]/) &&
+    password.match(/[A-Z]/) &&
+    !password.match(/[^a-zA-Z]/)
 
 const Login: Component = () => {
     const [email, setEmail] = createSignal('')
@@ -64,9 +68,7 @@ const Login: Component = () => {
                         onInput={e => setPassword(e.currentTarget.value)}
                     />
                     <TextFieldErrorMessage>
-                        Your password must be at least 15 characters long. It
-                        can only contain letters from a-z. This way you can
-                        easily remember it, but it will still be safe.
+                        This password is invalid
                     </TextFieldErrorMessage>
                 </TextField>
                 <Button
@@ -132,8 +134,10 @@ const Login: Component = () => {
                         />
                         <TextFieldErrorMessage>
                             Your password must be at least 15 characters long.
-                            It can only contain letters from a-z. This way you
-                            can easily remember it, but it will still be safe.
+                            It can only contain letters from a-z and has to
+                            contain both lowercase and uppercase letters. This
+                            way you can easily remember it, but it will still be
+                            safe.
                         </TextFieldErrorMessage>
                     </TextField>
                     <TextField

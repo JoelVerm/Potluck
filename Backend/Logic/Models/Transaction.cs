@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace Backend_Example.Database
+﻿namespace Logic.Models
 {
     public class Transaction
     {

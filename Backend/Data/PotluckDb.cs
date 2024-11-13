@@ -1,12 +1,12 @@
-﻿using System.Reflection.Metadata;
+﻿using Logic.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend_Example.Database
+namespace Data
 {
-    public class PotluckDb : IdentityDbContext<User>, IPotluckDb
+    public class PotluckDb : IdentityDbContext<User>, Logic.IPotluckDb
     {
-        public DbSet<User> Users { get; set; }
+        public new DbSet<User> Users { get; set; }
         public DbSet<House> Houses { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<TransactionUser> TransactionUsers { get; set; }

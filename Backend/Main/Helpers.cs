@@ -1,16 +1,12 @@
-﻿using Backend_Example.Database;
-using Backend_Example.Logic;
+﻿using Data;
+using Logic;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Backend_Example
+namespace Potluck
 {
     public static class Helpers
     {
-        public static int ToCents(this decimal value) => (int)(value * 100);
-
-        public static decimal ToMoney(this int value) => value / 100m;
-
-        public static RouteHandlerBuilder MapOut<TL, T>(
+        public static RouteHandlerBuilder UseGet<TL, T>(
             this IEndpointRouteBuilder app,
             string path,
             Func<TL, T> getter
@@ -28,11 +24,10 @@ namespace Backend_Example
                         return Results.Json(getter(logic));
                     }
                 )
-                .WithName(path[0].ToString().ToUpper() + path[1..])
-                .WithOpenApi();
+                .WithName(path[0].ToString().ToUpper() + path[1..]);
         }
 
-        public static RouteHandlerBuilder MapIn<TL, T>(
+        public static RouteHandlerBuilder UsePost<TL, T>(
             this IEndpointRouteBuilder app,
             string path,
             Func<T, TL, bool> setter
@@ -51,17 +46,16 @@ namespace Backend_Example
                         return Results.Json(result);
                     }
                 )
-                .WithName(path[0].ToString().ToUpper() + path[1..])
-                .WithOpenApi();
+                .WithName(path[0].ToString().ToUpper() + path[1..]);
         }
 
-        public static RouteHandlerBuilder MapIn<TL, T>(
+        public static RouteHandlerBuilder UsePost<TL, T>(
             this IEndpointRouteBuilder app,
             string path,
             Action<T, TL> setter
         )
             where TL : LogicBase, new() =>
-            app.MapIn<TL, T>(
+            app.UsePost<TL, T>(
                 path,
                 (value, logic) =>
                 {
@@ -70,7 +64,7 @@ namespace Backend_Example
                 }
             );
 
-        public static (RouteHandlerBuilder get, RouteHandlerBuilder post) MapInOut<TL, T>(
+        public static (RouteHandlerBuilder get, RouteHandlerBuilder post) UseGetPost<TL, T>(
             this IEndpointRouteBuilder app,
             string path,
             Func<TL, T> getter,
@@ -90,8 +84,7 @@ namespace Backend_Example
                             return Results.Json(getter(logic));
                         }
                     )
-                    .WithName(path[0].ToString().ToUpper() + path[1..])
-                    .WithOpenApi(),
+                    .WithName(path[0].ToString().ToUpper() + path[1..]),
                 app.MapPost(
                         $"/{path}",
                         ([FromBody] T value, HttpContext context, PotluckDb db) =>
@@ -105,18 +98,17 @@ namespace Backend_Example
                         }
                     )
                     .WithName("Set" + path[0].ToString().ToUpper() + path[1..])
-                    .WithOpenApi()
             );
         }
 
-        public static (RouteHandlerBuilder get, RouteHandlerBuilder post) MapInOut<TL, T>(
+        public static (RouteHandlerBuilder get, RouteHandlerBuilder post) UseGetPost<TL, T>(
             this IEndpointRouteBuilder app,
             string path,
             Func<TL, T> getter,
             Action<T, TL> setter
         )
             where TL : LogicBase, new() =>
-            app.MapInOut(
+            app.UseGetPost(
                 path,
                 getter,
                 (value, logic) =>

@@ -1,6 +1,4 @@
-﻿using Backend_Example.Database;
-
-namespace Backend_Example.Logic
+﻿namespace Logic
 {
     public class Transactions : LogicBase
     {
@@ -45,7 +43,7 @@ namespace Backend_Example.Logic
             if (fromUsers.Any(u => u == null))
                 return;
             _user.House.Transactions.Add(
-                new Database.Transaction
+                new Models.Transaction
                 {
                     ToUser = toUser,
                     Users = fromUsers,
@@ -60,7 +58,7 @@ namespace Backend_Example.Logic
 
         public (int cookingPoints, decimal euros) Balance() => BalanceFor(_user);
 
-        public static (int cookingPoints, decimal euros) BalanceFor(Database.User user)
+        public static (int cookingPoints, decimal euros) BalanceFor(Models.User user)
         {
             int euroCents = 0;
             int cookingPoints = 0;
@@ -74,8 +72,8 @@ namespace Backend_Example.Logic
         }
 
         public static (int euroCents, int cookingPoints) BalanceFor(
-            Database.User user,
-            Database.Transaction transaction
+            Models.User user,
+            Models.Transaction transaction
         )
         {
             int euroCents = 0;

@@ -1,11 +1,9 @@
-using Backend_Example;
-using Backend_Example.Database;
-using Backend_Example.Logic;
-using DataHouse = Backend_Example.Database.House;
-using DataTransaction = Backend_Example.Database.Transaction;
-using DataUser = Backend_Example.Database.User;
-using LogicTransaction = Backend_Example.Logic.Transactions.Transaction;
-using LogicTransactions = Backend_Example.Logic.Transactions;
+using Logic;
+using DataHouse = Logic.Models.House;
+using DataTransaction = Logic.Models.Transaction;
+using DataUser = Logic.Models.User;
+using LogicTransaction = Logic.Transactions.Transaction;
+using LogicTransactions = Logic.Transactions;
 
 [assembly: TestDataSourceDiscovery(TestDataSourceDiscoveryOption.DuringExecution)]
 

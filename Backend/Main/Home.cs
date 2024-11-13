@@ -1,8 +1,6 @@
-﻿using System.Collections.Immutable;
-using Backend_Example.Logic;
-using Microsoft.AspNetCore.Mvc;
+﻿using Logic;
 
-namespace Backend_Example
+namespace Potluck
 {
     public static class Home
     {
@@ -14,24 +12,24 @@ namespace Backend_Example
 
         public static void SetupHomeRoutes(this IEndpointRouteBuilder app)
         {
-            app.MapOut(
+            app.UseGet(
                 "totalBalance",
                 (Transactions transactions) => new TotalBalanceResponse(transactions.Balance())
             );
 
-            app.MapInOut(
+            app.UseGetPost(
                 "eatingTotal",
                 (User user) => user.EatingTotalPeople(),
                 (eatingTotal, user) => user.SetEatingTotalPeople(eatingTotal)
             );
 
-            app.MapInOut(
+            app.UseGetPost(
                 "homeStatus",
                 (User user) => user.HomeStatus(),
                 (homeStatus, user) => user.SetHomeStatus(homeStatus)
             );
 
-            app.MapOut("homeStatusList", (House house) => house.HomeStatusList());
+            app.UseGet("homeStatusList", (House house) => house.HomeStatusList());
         }
     }
 }

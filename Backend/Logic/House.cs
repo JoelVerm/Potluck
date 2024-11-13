@@ -1,6 +1,4 @@
-﻿using Backend_Example.Database;
-
-namespace Backend_Example.Logic
+﻿namespace Logic
 {
     public class House : LogicBase
     {
@@ -145,7 +143,7 @@ namespace Backend_Example.Logic
         {
             if (_user.House != null)
                 return;
-            _user.House = new Database.House { Name = name };
+            _user.House = new Models.House { Name = name };
             _user.House.Users.Add(_user);
             _db.SaveChanges();
         }

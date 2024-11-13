@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Backend_Example.Database;
+using Data;
+using Logic.Models;
+using Potluck;
 
 namespace PotluckTest
 {
-    internal class MockDb : IPotluckDb
+    internal class MockDb : Logic.IPotluckDb
     {
         public User? User { get; set; } = null;
 

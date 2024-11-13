@@ -1,34 +1,30 @@
-﻿using System.Diagnostics;
-using Backend_Example.Logic;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Logic;
 
-namespace Backend_Example
+namespace Potluck
 {
     public static class Settings
     {
         public static void SetupSettingsRoutes(this IEndpointRouteBuilder app)
         {
-            app.MapInOut(
+            app.UseGetPost(
                 "dietPreferences",
                 (User user) => user.Diet(),
                 (preference, user) => user.SetDiet(preference)
             );
 
-            app.MapInOut(
+            app.UseGetPost(
                 "houseName",
                 (House house) => house.HouseName(),
                 (name, house) => house.SetHouseName(name)
             );
 
-            app.MapOut("houseMembers", (House house) => house.AllPeople());
+            app.UseGet("houseMembers", (House house) => house.AllPeople());
 
-            app.MapIn("createHouse", (string name, House house) => house.CreateNew(name));
+            app.UsePost("createHouse", (string name, House house) => house.CreateNew(name));
 
-            app.MapIn("addHouseMember", (string name, House house) => house.AddUser(name));
+            app.UsePost("addHouseMember", (string name, House house) => house.AddUser(name));
 
-            app.MapIn("removeHouseMember", (string name, House house) => house.RemoveUser(name));
+            app.UsePost("removeHouseMember", (string name, House house) => house.RemoveUser(name));
         }
     }
 }

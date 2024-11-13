@@ -1,8 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Net.Mail;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
-namespace Backend_Example.Database
+namespace Logic.Models
 {
     [Index(nameof(Name), IsUnique = true)]
     public class House

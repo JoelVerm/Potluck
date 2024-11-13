@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
-using Backend_Example.Database;
 
-namespace Backend_Example.Logic
+namespace Logic
 {
     public class User : LogicBase
     {

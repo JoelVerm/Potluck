@@ -1,7 +1,6 @@
-using Backend_Example.Database;
-using Backend_Example.Logic;
-using DataUser = Backend_Example.Database.User;
-using LogicUser = Backend_Example.Logic.User;
+using Logic;
+using DataUser = Logic.Models.User;
+using LogicUser = Logic.User;
 
 namespace PotluckTest
 {

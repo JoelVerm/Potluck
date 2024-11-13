@@ -1,9 +1,8 @@
-using Backend_Example.Database;
-using Backend_Example.Logic;
-using DataHouse = Backend_Example.Database.House;
-using DataUser = Backend_Example.Database.User;
-using EatingPerson = Backend_Example.Logic.House.EatingPerson;
-using LogicHouse = Backend_Example.Logic.House;
+using Logic;
+using DataHouse = Logic.Models.House;
+using DataUser = Logic.Models.User;
+using EatingPerson = Logic.House.EatingPerson;
+using LogicHouse = Logic.House;
 
 namespace PotluckTest
 {

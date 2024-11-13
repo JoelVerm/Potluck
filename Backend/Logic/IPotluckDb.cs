@@ -1,9 +1,9 @@
-﻿namespace Backend_Example.Database
+﻿namespace Logic
 {
     public interface IPotluckDb
     {
         public int SaveChanges();
 
-        public User? GetUser(string? name);
+        public Models.User? GetUser(string? name);
     }
 }
