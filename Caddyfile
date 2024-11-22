@@ -1,3 +1,7 @@
+{
+	admin off
+}
+
 localhost
 
 handle_path /api/* {

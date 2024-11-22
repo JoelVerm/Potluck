@@ -1,13 +1,13 @@
-import type { Component } from 'solid-js'
-
-import { For } from 'solid-js'
-import { Flex } from '~/components/ui/flex'
-import { Switch, SwitchControl, SwitchThumb } from '~/components/ui/switch'
-import { TextField, TextFieldInput } from '~/components/ui/text-field'
+import type {Component, Signal} from 'solid-js'
+import {createEffect, createSignal, For} from 'solid-js'
+import {Flex} from '~/components/ui/flex'
+import {Switch, SwitchControl, SwitchThumb} from '~/components/ui/switch'
+import {TextField, TextFieldInput} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
-import { activeResource, pollingResource } from '~/lib/activeResource'
+import {createInitUserListWS, createInitWS} from 'api'
+import {apiCall, createGetPostResource} from 'api/api'
 
 interface EatingPerson {
     name: string
@@ -16,15 +16,36 @@ interface EatingPerson {
     diet: string
 }
 
-const Cooking: Component = () => {
-    const [cookingUser] = pollingResource<string>('/api/cookingUser')
-    const [cooking, setCooking] = activeResource<boolean>('/api/cooking')
+const Cooking: Component<{ username_signal: Signal<string> }> = props => {
+    const [username] = props.username_signal
+    const [cookingUser, setCooking] = createInitWS('/cooking')
     const [cookingTotal, setCookingTotal] =
-        activeResource<number>('/api/cookingTotal')
-    const [description, setDescription] = activeResource<string>(
-        '/api/cookingDescription'
+        createGetPostResource('/cookingTotal')
+    const [description, setDescription] = createGetPostResource(
+        '/cookingDescription'
     )
-    const [eatingList] = pollingResource<EatingPerson[]>('/api/eatingList')
+    const [eatingList, setEatingList] = createSignal<
+        EatingPerson[] | undefined
+    >(undefined)
+    apiCall('/eatingList', 'get').then(setEatingList)
+    const [eatingTotalUsers] = createInitUserListWS('/eatingTotal')
+    createEffect(() => {
+        const eatingListNames = eatingList()?.map(p => p.name)
+        const everyUserIncluded = eatingTotalUsers().map(u => u?.User).every(u => eatingListNames?.includes(u ?? ""))
+        if (!everyUserIncluded) {
+            apiCall('/eatingList', 'get').then(setEatingList)
+            return
+        }
+        setEatingList(eatingList()?.map(p => (
+                {
+                    ...p,
+                    cookingPoints: eatingTotalUsers().find(u => u?.User == p.name)?.Value ?? 0
+                }
+            )
+        ))
+    })
+
+    const cooking = () => cookingUser() == username()
 
     return (
         <Flex
@@ -33,7 +54,7 @@ const Cooking: Component = () => {
             justifyContent="center"
             class="gap-2"
         >
-            {(cookingUser()?.length ?? 0) <= 0 || cooking() ? (
+            {cooking() ? (
                 <>
                     <FlexRow>
                         <span>I'm cooking today!</span>
@@ -43,7 +64,7 @@ const Cooking: Component = () => {
                             onChange={setCooking}
                         >
                             <SwitchControl>
-                                <SwitchThumb />
+                                <SwitchThumb/>
                             </SwitchControl>
                         </Switch>
                     </FlexRow>

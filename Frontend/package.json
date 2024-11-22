@@ -16,11 +16,12 @@
     "solid-devtools": "^0.29.3",
     "tailwindcss": "^3.4.10",
     "typescript": "^5.6.2",
-    "vite": "^5.4.3",
+    "vite": "5.4.6",
     "vite-plugin-solid": "^2.10.2"
   },
   "dependencies": {
     "@kobalte/core": "^0.13.6",
+    "api": "link:..\\api",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "solid-js": "^1.8.22",

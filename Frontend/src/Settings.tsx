@@ -1,32 +1,21 @@
-import type { Component } from 'solid-js'
+import type {Component, Signal} from 'solid-js'
+import {createResource, createSignal, For} from 'solid-js'
 
-import { createSignal, For } from 'solid-js'
-
-import { Button } from '~/components/ui/button'
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger
-} from '~/components/ui/dialog'
-import { Flex } from '~/components/ui/flex'
-import {
-    TextField,
-    TextFieldInput,
-    TextFieldLabel
-} from '~/components/ui/text-field'
+import {Button} from '~/components/ui/button'
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '~/components/ui/dialog'
+import {Flex} from '~/components/ui/flex'
+import {TextField, TextFieldInput} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
-import { activeResource, pollingResource } from '~/lib/activeResource'
+import {apiCall, createInitUserListWS, createInitWS} from 'api'
 
-const Settings: Component = () => {
-    const [dietPreferences, setDietPreferences] = activeResource<string>(
-        '/api/dietPreferences'
-    )
-    const [houseName, setHouseName] = activeResource<string>('/api/houseName')
-    const [houseMembers] = pollingResource<string[]>('/api/houseMembers')
+const Settings: Component<{ username_signal: Signal<string> }> = props => {
+    const [userName] = props.username_signal
+
+    const [dietPreferences, setDietPreferences] =
+        createInitUserListWS('/dietPreferences')
+    const [houseName, setHouseName] = createInitWS('/houseName')
+    const [houseMembers] = createResource(() => apiCall('/houseMembers', 'get'))
 
     const [newHouseName, setNewHouseName] = createSignal('')
 
@@ -41,7 +30,10 @@ const Settings: Component = () => {
                 <TextFieldInput
                     type="text"
                     placeholder="Diet info"
-                    value={dietPreferences()}
+                    value={
+                        dietPreferences().filter(e => e?.User == userName())[0]
+                            ?.Value ?? ''
+                    }
                     onInput={e => setDietPreferences(e.currentTarget.value)}
                 />
             </TextField>
@@ -66,14 +58,12 @@ const Settings: Component = () => {
                         <Button
                             onClick={() => {
                                 if ((newHouseName()?.length ?? 0) > 0) {
-                                    fetch('/api/createHouse', {
-                                        method: 'POST',
-                                        body: JSON.stringify(newHouseName()),
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            Accept: 'application/json'
-                                        }
-                                    })
+                                    apiCall(
+                                        '/createHouse',
+                                        'post',
+                                        undefined,
+                                        newHouseName()
+                                    )
                                 }
                             }}
                         >
@@ -98,15 +88,12 @@ const Settings: Component = () => {
                                     <span>{member}</span>
                                     <Button
                                         onClick={() => {
-                                            fetch('/api/removeHouseMember', {
-                                                method: 'POST',
-                                                body: JSON.stringify(member),
-                                                headers: {
-                                                    'Content-Type':
-                                                        'application/json',
-                                                    Accept: 'application/json'
-                                                }
-                                            })
+                                            apiCall(
+                                                '/removeHouseMember',
+                                                'post',
+                                                undefined,
+                                                member
+                                            )
                                         }}
                                     >
                                         Remove
@@ -114,7 +101,7 @@ const Settings: Component = () => {
                                 </FlexRow>
                             )}
                         </For>
-                        <AddUserDialog />
+                        <AddUserDialog/>
                     </>
                 )}
             </Flex>
@@ -127,14 +114,7 @@ const AddUserDialog: Component = () => {
     const [userName, setUserName] = createSignal('')
 
     const addMember = () => {
-        fetch('/api/addHouseMember', {
-            method: 'POST',
-            body: JSON.stringify(userName()),
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            }
-        })
+        apiCall('/addHouseMember', 'post', undefined, userName())
         setOpen(false)
     }
 

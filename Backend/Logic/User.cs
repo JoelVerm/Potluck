@@ -11,6 +11,8 @@ namespace Logic
             "Out of town",
         ];
 
+        public string Name() => _user.UserName ?? "";
+
         public int EatingTotalPeople() => _user.EatingTotalPeople;
 
         public void SetEatingTotalPeople(int eatingTotal)

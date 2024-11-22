@@ -1,8 +1,8 @@
 using Data;
-using Potluck;
 using Logic.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Potluck.API;
 using Saunter;
 using Saunter.AsyncApiSchema.v2;
 
@@ -23,7 +23,7 @@ builder.Services.AddAsyncApiSchemaGeneration(o =>
 // Temporary CORS policy to allow all origins
 builder.Services.AddCors(policyBuilder =>
     policyBuilder.AddDefaultPolicy(policy =>
-        policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod()
+        policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()
     )
 );
 
@@ -41,8 +41,6 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireDigit = false;
     options.Password.RequireNonAlphanumeric = false;
 });
-
-var homeStatusWebsocket = new HomeStatusWebsocket(builder);
 
 var app = builder.Build();
 
@@ -73,7 +71,5 @@ authed.SetupHomeRoutes();
 authed.SetupCookingRoutes();
 authed.SetupShoppingRoutes();
 authed.SetupSettingsRoutes();
-
-homeStatusWebsocket.Activate(app);
 
 app.Run();

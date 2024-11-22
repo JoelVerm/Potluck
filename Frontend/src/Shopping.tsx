@@ -1,45 +1,19 @@
-import type { Component } from 'solid-js'
+import type {Component} from 'solid-js'
+import {createEffect, createResource, createSignal, For, Index} from 'solid-js'
 
-import { createEffect, createSignal, For, Index } from 'solid-js'
-
-import { Button } from '~/components/ui/button'
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle
-} from '~/components/ui/card'
-import { Flex } from '~/components/ui/flex'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '~/components/ui/select'
-import {
-    TextField,
-    TextFieldInput,
-    TextFieldTextArea
-} from '~/components/ui/text-field'
+import {Button} from '~/components/ui/button'
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '~/components/ui/card'
+import {Flex} from '~/components/ui/flex'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '~/components/ui/select'
+import {TextField, TextFieldInput, TextFieldTextArea} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
-import { activeResource, pollingResource } from '~/lib/activeResource'
-
-interface Transaction {
-    to: string
-    from: string[]
-    description: string
-    money: number
-    points: number
-}
+import {apiCall, createInitWS} from 'api'
 
 const Shopping: Component = () => {
-    const [shoppingList, setShoppingList] =
-        activeResource<string>('/api/shoppingList')
-    const [allPeople] = pollingResource<string[]>('/api/allPeople')
+    const [shoppingList, setShoppingList] = createInitWS('/shoppingList')
+    const [allPeople] = createResource(() => apiCall('/allPeople', 'get'))
     const [description, setDescription] = createSignal('')
     const [money, setMoney] = createSignal(0)
     const [points, setPoints] = createSignal(0)
@@ -48,7 +22,7 @@ const Shopping: Component = () => {
         [key: string]: number
     }>({})
     const changeCount = (key: string, count: number) => {
-        const { [key]: old, ...peeps } = peopleCountList()
+        const {[key]: old, ...peeps} = peopleCountList()
         if (old + count > 0) peeps[key] = old + count
         setPeopleCountList(peeps)
         return peopleCountList()[key]
@@ -66,7 +40,9 @@ const Shopping: Component = () => {
             )
         )
     )
-    const [transactions] = pollingResource<Transaction[]>('/api/transactions')
+    const [transactions, {refetch}] = createResource(() =>
+        apiCall('/transactions', 'get')
+    )
 
     return (
         <Flex
@@ -94,10 +70,12 @@ const Shopping: Component = () => {
                         />
                     </TextField>
                     <Button
-                        onClick={() => {
-                            fetch('/api/addTransaction', {
-                                method: 'POST',
-                                body: JSON.stringify({
+                        onClick={async () => {
+                            await apiCall(
+                                '/addTransaction',
+                                'post',
+                                undefined,
+                                {
                                     from: Object.entries(
                                         peopleCountList()
                                     ).reduce<string[]>(
@@ -110,12 +88,9 @@ const Shopping: Component = () => {
                                     description: description(),
                                     money: money(),
                                     points: points()
-                                }),
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Accept: 'application/json'
                                 }
-                            })
+                            )
+                            await refetch()
                         }}
                     >
                         Add
@@ -196,7 +171,7 @@ const Shopping: Component = () => {
                             )}
                         </SelectValue>
                     </SelectTrigger>
-                    <SelectContent />
+                    <SelectContent/>
                 </Select>
             </Flex>
             <For each={transactions()}>
@@ -212,7 +187,7 @@ const Shopping: Component = () => {
                             </CardDescription>
                         </CardHeader>
                         <CardContent class="p-0">
-                            {transaction.from.join(', ')}
+                            {transaction.from?.join(', ')}
                         </CardContent>
                     </Card>
                 )}

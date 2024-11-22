@@ -1,40 +1,21 @@
-import type { Component } from 'solid-js'
-
-import { For, Index } from 'solid-js'
-import { Flex } from '~/components/ui/flex'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '~/components/ui/select'
+import type {Component, Signal} from 'solid-js'
+import {createResource, For, Index} from 'solid-js'
+import {Flex} from '~/components/ui/flex'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '~/components/ui/select'
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
-import { activeResource, pollingResource } from '~/lib/activeResource'
+import {apiCall, createInitUserListWS} from 'api'
 
 const homeStatusOptions = ['At home', 'Away for a bit', 'Out of town'] as const
 
-type HomeStatus = (typeof homeStatusOptions)[number]
-interface HomeStatusList {
-    [index: string]: HomeStatus
-}
-
-interface TotalBalanceResponse {
-    cookingPoints: number
-    euros: number
-}
-
-const Home: Component = () => {
-    const [totalBalance] =
-        pollingResource<TotalBalanceResponse>('/api/totalBalance')
-    const [eatingTotal, setEatingTotal] =
-        activeResource<number>('/api/eatingTotal')
-    const [homeStatus, setHomeStatus] =
-        activeResource<HomeStatus>('/api/homeStatus')
-    const [homeStatusList] = pollingResource<HomeStatusList>(
-        '/api/homeStatusList'
+const Home: Component<{ username_signal: Signal<string> }> = props => {
+    const [userName] = props.username_signal
+    const [totalBalance] = createResource(() => apiCall('/totalBalance', 'get'))
+    const [eatingTotal, setEatingTotal] = createInitUserListWS('/eatingTotal')
+    const [homeStatus, setHomeStatus] = createInitUserListWS('/homeStatus')
+    const [homeStatusList] = createResource(() =>
+        apiCall('/homeStatusList', 'get')
     )
 
     return (
@@ -50,13 +31,19 @@ const Home: Component = () => {
             </h1>
             <NumberRow
                 text="Eating with"
-                value={eatingTotal() ?? 0}
+                value={
+                    eatingTotal().filter(v => v?.User === userName())[0]
+                        ?.Value ?? 0
+                }
                 setValue={setEatingTotal}
             />
             <FlexRow>
                 <span>Right now I am</span>
                 <Select
-                    value={homeStatus()}
+                    value={
+                        homeStatus().filter(v => v?.User === userName())[0]
+                            ?.Value
+                    }
                     onChange={v => setHomeStatus(v!)}
                     options={homeStatusOptions.slice()}
                     defaultValue={homeStatusOptions[0]}
@@ -73,7 +60,7 @@ const Home: Component = () => {
                             {state => state.selectedOption()}
                         </SelectValue>
                     </SelectTrigger>
-                    <SelectContent />
+                    <SelectContent/>
                 </Select>
             </FlexRow>
             <div>

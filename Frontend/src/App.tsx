@@ -1,7 +1,6 @@
-import type { Component } from 'solid-js'
-
-import { For, Show } from 'solid-js'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import type {Component} from 'solid-js'
+import {createSignal, For, Show} from 'solid-js'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '~/components/ui/tabs'
 
 import Cooking from '~/Cooking'
 import Home from '~/Home'
@@ -9,21 +8,24 @@ import Login from '~/Login'
 import Settings from '~/Settings'
 import Shopping from '~/Shopping'
 
-import { loggedIn } from '~/lib/activeResource'
-
 const App: Component = () => {
+    const username_signal = createSignal('')
+
     const tabs = {
-        Home: <Home />,
-        Cooking: <Cooking />,
-        Shopping: <Shopping />,
-        Settings: <Settings />
+        Home: <Home username_signal={username_signal}/>,
+        Cooking: <Cooking username_signal={username_signal}/>,
+        Shopping: <Shopping/>,
+        Settings: <Settings username_signal={username_signal}/>
     }
     const tabsStyle = `grid-template-columns: repeat(${
         Object.keys(tabs).length
     }, minmax(0, 1fr));`
 
     return (
-        <Show when={loggedIn()} fallback={<Login />}>
+        <Show
+            when={username_signal[0]().length > 0}
+            fallback={<Login username_signal={username_signal}/>}
+        >
             <Tabs
                 defaultValue={Object.keys(tabs)[0]}
                 class="h-dvh grid"

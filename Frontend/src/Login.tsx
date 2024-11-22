@@ -1,15 +1,11 @@
-import type { Component } from 'solid-js'
-
-import { createSignal } from 'solid-js'
-import { Button } from '~/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
-import {
-    TextField,
-    TextFieldErrorMessage,
-    TextFieldInput
-} from '~/components/ui/text-field'
+import type {Component, Signal} from 'solid-js'
+import {createSignal} from 'solid-js'
+import {Button} from '~/components/ui/button'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '~/components/ui/tabs'
+import {TextField, TextFieldErrorMessage, TextFieldInput} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
+import {apiCall} from 'api'
 
 const isValidEmail = (email: string) => /.+@.+\..+/.test(email)
 const isValidPassword = (password: string) =>
@@ -18,7 +14,8 @@ const isValidPassword = (password: string) =>
     password.match(/[A-Z]/) &&
     !password.match(/[^a-zA-Z]/)
 
-const Login: Component = () => {
+const Login: Component<{ username_signal: Signal<string> }> = props => {
+    const [_, setUsername] = props.username_signal
     const [email, setEmail] = createSignal('')
     const [password, setPassword] = createSignal('')
     const [password2, setPassword2] = createSignal('')
@@ -79,17 +76,10 @@ const Login: Component = () => {
                             !isValidPassword(password())
                         )
                             return
-                        fetch('/api/login?useCookies=true', {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                email: email(),
-                                password: password()
-                            }),
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Accept: 'application/json'
-                            }
-                        })
+                        apiCall('/login', 'post', {useCookies: true} as any, {
+                            email: email(),
+                            password: password()
+                        }).then(res => res != undefined && setUsername(email()))
                     }}
                 >
                     Login
@@ -169,29 +159,29 @@ const Login: Component = () => {
                             password2() !== password()
                         )
                             return
-                        fetch('/api/register', {
-                            method: 'POST',
-                            body: JSON.stringify({
+                        apiCall(
+                            '/register',
+                            'post',
+                            {useCookies: true} as any,
+                            {
                                 email: email(),
                                 password: password()
-                            }),
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Accept: 'application/json'
                             }
-                        }).then(() =>
-                            fetch('/api/login?useCookies=true', {
-                                method: 'POST',
-                                body: JSON.stringify({
-                                    email: email(),
-                                    password: password()
-                                }),
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Accept: 'application/json'
-                                }
-                            })
                         )
+                            .then(() =>
+                                apiCall(
+                                    '/login',
+                                    'post',
+                                    {useCookies: true} as any,
+                                    {
+                                        email: email(),
+                                        password: password()
+                                    }
+                                )
+                            )
+                            .then(
+                                res => res != undefined && setUsername(email())
+                            )
                     }}
                 >
                     Register
