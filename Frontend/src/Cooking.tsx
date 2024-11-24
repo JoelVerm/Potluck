@@ -1,5 +1,4 @@
-import type {Component, Signal} from 'solid-js'
-import {createEffect, createSignal, For} from 'solid-js'
+import {Component, createEffect, createSignal, Index, Signal, untrack} from 'solid-js'
 import {Flex} from '~/components/ui/flex'
 import {Switch, SwitchControl, SwitchThumb} from '~/components/ui/switch'
 import {TextField, TextFieldInput} from '~/components/ui/text-field'
@@ -30,19 +29,20 @@ const Cooking: Component<{ username_signal: Signal<string> }> = props => {
     apiCall('/eatingList', 'get').then(setEatingList)
     const [eatingTotalUsers] = createInitUserListWS('/eatingTotal')
     createEffect(() => {
-        const eatingListNames = eatingList()?.map(p => p.name)
+        const eating = untrack(eatingList)
+        const eatingListNames = eating?.map(p => p.name)
         const everyUserIncluded = eatingTotalUsers().map(u => u?.User).every(u => eatingListNames?.includes(u ?? ""))
         if (!everyUserIncluded) {
             apiCall('/eatingList', 'get').then(setEatingList)
             return
         }
-        setEatingList(eatingList()?.map(p => (
+        setEatingList(eating?.map(p => (
                 {
                     ...p,
-                    cookingPoints: eatingTotalUsers().find(u => u?.User == p.name)?.Value ?? 0
+                    count: eatingTotalUsers().find(u => u?.User == p.name)?.Value ?? 0
                 }
             )
-        ))
+        ).filter(p => p.count > 0))
     })
 
     const cooking = () => cookingUser() == username()
@@ -54,7 +54,7 @@ const Cooking: Component<{ username_signal: Signal<string> }> = props => {
             justifyContent="center"
             class="gap-2"
         >
-            {cooking() ? (
+            {cooking() || ((cookingUser()?.trim() ?? "") == "") ? (
                 <>
                     <FlexRow>
                         <span>I'm cooking today!</span>
@@ -92,7 +92,7 @@ const Cooking: Component<{ username_signal: Signal<string> }> = props => {
                 {eatingList()?.reduce((t, p) => t + p.count, 0) ?? 0} people
                 eating today
             </h1>
-            <For
+            <Index
                 each={eatingList()?.toSorted((a, b) =>
                     a.name.localeCompare(b.name)
                 )}
@@ -100,19 +100,19 @@ const Cooking: Component<{ username_signal: Signal<string> }> = props => {
                 {person => (
                     <div class="my-2">
                         <h1>
-                            {person.name} 🍴{person.cookingPoints}
+                            {person().name} 🍴{person().cookingPoints}
                         </h1>
-                        {person.count > 1 ? (
+                        {person().count > 1 ? (
                             <p class="text-muted-foreground">
-                                Takes {person.count - 1} friends
+                                Takes {person().count - 1} friends
                             </p>
                         ) : (
                             ''
                         )}
-                        <p class="text-muted-foreground">{person.diet}</p>
+                        <p class="text-muted-foreground">{person().diet}</p>
                     </div>
                 )}
-            </For>
+            </Index>
         </Flex>
     )
 }

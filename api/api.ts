@@ -34,19 +34,19 @@ export const apiCall = <P extends Path, M extends PathMethod<P>>(
     method: M,
     params?: RequestParams<P, M>,
     body?: RequestBody<P, M>
-): Promise<ResponseType<P, M> | undefined> => {
-    return fetch(`/api${url}?` + new URLSearchParams(params), {
+): Promise<ResponseType<P, M> | undefined> =>
+    fetch(`/api${url}?` + new URLSearchParams(params), {
         method: method as string,
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json'
         },
-        body: body ? JSON.stringify(body) : undefined
+        body: body == null ? undefined : JSON.stringify(body)
     })
         .then(res => (res.status == 200 ? res : undefined))
         .then(res => res?.json())
         .catch(err => (err instanceof SyntaxError ? '' : err)) // SyntaxError is thrown when the response is not JSON
-}
+
 
 export const createGetPostResource = <
     P extends Path,
@@ -57,6 +57,7 @@ export const createGetPostResource = <
     const [value, setValue] = createSignal<T | undefined>(undefined)
     apiCall(url, 'get').then(setValue)
     const post = (body: T) => {
+        if (body == undefined) return
         apiCall(url, 'post', undefined, body)
             .then(() => apiCall(url, 'get'))
             .then(setValue)

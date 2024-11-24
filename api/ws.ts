@@ -50,20 +50,23 @@ const _createUserListWS = <P extends Path & UserPath>(
     value: () => (Type<P, 'sub'> | undefined)[],
     setValue: (data: Type<P, 'pub'>) => void
 ] => {
-    const [values, setValues] = createSignal<(Type<P, 'sub'> | undefined)[]>([])
+    const [values, setValues] = createSignal<(Exclude<Type<P, "sub">, string> | undefined)[]>([])
     const [value, setValue] = ws
     createEffect(() => {
-        const data = value()
+        const data = value() as Exclude<Type<P, "sub">, string> | undefined
         if (data) {
-            // @ts-ignore
-            setValues(values().filter(v => v?.User !== data.User))
-            if (
-                !((data as any).remove ||
+            const remove: boolean = (
+                ((data as any).remove ||
                     (data as any).Remove ||
                     (data as any).delete ||
                     (data as any).Delete)
             )
-                setValues(prev => [...prev, data])
+            setValues(
+                prev => [
+                    ...prev.filter(v => v?.User !== data.User),
+                    ...(remove ? [] : [data])
+                ]
+            )
         }
     })
     return [values, setValue]

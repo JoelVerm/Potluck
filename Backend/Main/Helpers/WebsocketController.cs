@@ -52,18 +52,14 @@ public class WebsocketController<TLogic, TReceive, TSend>
                     var user = db.GetUser(context.User.Identity!.Name);
                     if (user == null)
                         return Results.Unauthorized();
-                    if (context.WebSockets.IsWebSocketRequest)
-                    {
-                        var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                        if (user.House == null)
-                            return Results.BadRequest();
-                        var houseId = user.House.Id;
-                        var logic = LogicBase.Create<TLogic>(user, db);
-                        await HandleWebsocket(webSocket, houseId, logic, user.UserName ?? "");
-                        return Results.Ok();
-                    }
-
-                    return Results.BadRequest();
+                    if (!context.WebSockets.IsWebSocketRequest) return Results.BadRequest();
+                    var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                    if (user.House == null)
+                        return Results.NoContent();
+                    var houseId = user.House.Id;
+                    var logic = LogicBase.Create<TLogic>(user, db);
+                    await HandleWebsocket(webSocket, houseId, logic, user.UserName ?? "");
+                    return Results.Ok();
                 }
             )
             .WithGroupName("WebSockets")
@@ -91,7 +87,7 @@ public class WebsocketController<TLogic, TReceive, TSend>
                 new ArraySegment<byte>(buffer),
                 CancellationToken.None
             );
-            var message = Encoding.UTF8.GetString(buffer);
+            var message = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
             try
             {
                 var messageObject = JsonSerializer.Deserialize<TReceive>(message);
@@ -104,6 +100,7 @@ public class WebsocketController<TLogic, TReceive, TSend>
             }
             catch (JsonException)
             {
+                Console.WriteLine($"Couldn't parse {message} into {typeof(TReceive)}");
             }
         } while (!receiveResult.CloseStatus.HasValue);
 

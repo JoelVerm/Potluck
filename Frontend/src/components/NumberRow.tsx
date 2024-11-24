@@ -1,6 +1,5 @@
-import type { Accessor, Component, Setter, Signal } from 'solid-js'
+import type {Component} from 'solid-js'
 
-import { Flex } from '~/components/ui/flex'
 import {
     NumberField,
     NumberFieldDecrementTrigger,
@@ -32,9 +31,9 @@ const NumberRow: Component<{
                 disabled={!(props.enabled ?? true)}
             >
                 <div class="relative">
-                    <NumberFieldInput />
-                    <NumberFieldIncrementTrigger />
-                    <NumberFieldDecrementTrigger />
+                    <NumberFieldInput/>
+                    <NumberFieldIncrementTrigger/>
+                    <NumberFieldDecrementTrigger/>
                 </div>
             </NumberField>
         </FlexRow>

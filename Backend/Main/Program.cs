@@ -16,7 +16,7 @@ builder.Services.AddAsyncApiSchemaGeneration(o =>
     o.AsyncApi = new AsyncApiDocument
     {
         Info = new Info("Potluck API", "0.0.1"),
-        Servers = { ["ws"] = new Server("0.0.0.0", "ws") },
+        Servers = { ["ws"] = new Server("0.0.0.0", "ws") }
     };
 });
 
@@ -45,6 +45,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 var app = builder.Build();
 
 app.UseCors();
+app.UseWebSockets();
 
 if (app.Environment.IsDevelopment())
 {
