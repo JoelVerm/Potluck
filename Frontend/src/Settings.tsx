@@ -13,9 +13,9 @@ const Settings: Component<{ username_signal: Signal<string> }> = props => {
     const [userName] = props.username_signal
 
     const [dietPreferences, setDietPreferences] =
-        createInitUserListWS('/dietPreferences')
-    const [houseName, setHouseName] = createInitWS('/houseName')
-    const [houseMembers] = createResource(() => apiCall('/houseMembers', 'get'))
+        createInitUserListWS('/users/current/diet')
+    const [houseName, setHouseName] = createInitWS('/houses/current/name')
+    const [houseMembers] = createResource(() => apiCall('/houses/current/users', 'get'))
 
     const [newHouseName, setNewHouseName] = createSignal('')
 
@@ -31,8 +31,8 @@ const Settings: Component<{ username_signal: Signal<string> }> = props => {
                     type="text"
                     placeholder="Diet info"
                     value={
-                        dietPreferences().filter(e => e?.User == userName())[0]
-                            ?.Value ?? ''
+                        dietPreferences().filter(e => e?.user == userName())[0]
+                            ?.value ?? ''
                     }
                     onInput={e => setDietPreferences(e.currentTarget.value)}
                 />
@@ -59,7 +59,7 @@ const Settings: Component<{ username_signal: Signal<string> }> = props => {
                             onClick={() => {
                                 if ((newHouseName()?.length ?? 0) > 0) {
                                     apiCall(
-                                        '/createHouse',
+                                        '/houses',
                                         'post',
                                         undefined,
                                         newHouseName()
@@ -89,10 +89,8 @@ const Settings: Component<{ username_signal: Signal<string> }> = props => {
                                     <Button
                                         onClick={() => {
                                             apiCall(
-                                                '/removeHouseMember',
-                                                'post',
-                                                undefined,
-                                                member
+                                                `/houses/current/users/${member}`,
+                                                'delete'
                                             )
                                         }}
                                     >
@@ -114,7 +112,7 @@ const AddUserDialog: Component = () => {
     const [userName, setUserName] = createSignal('')
 
     const addMember = () => {
-        apiCall('/addHouseMember', 'post', undefined, userName())
+        apiCall('/houses/current/users', 'post', undefined, userName())
         setOpen(false)
     }
 

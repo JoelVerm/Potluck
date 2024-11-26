@@ -6,7 +6,7 @@ import {TextField, TextFieldInput} from '~/components/ui/text-field'
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
 import {createInitUserListWS, createInitWS} from 'api'
-import {apiCall, createGetPostResource} from 'api/api'
+import {apiCall, createGetPutResource} from 'api/api'
 
 interface EatingPerson {
     name: string
@@ -17,29 +17,29 @@ interface EatingPerson {
 
 const Cooking: Component<{ username_signal: Signal<string> }> = props => {
     const [username] = props.username_signal
-    const [cookingUser, setCooking] = createInitWS('/cooking')
+    const [cookingUser, setCooking] = createInitWS('/houses/current/users/cooking')
     const [cookingTotal, setCookingTotal] =
-        createGetPostResource('/cookingTotal')
-    const [description, setDescription] = createGetPostResource(
-        '/cookingDescription'
+        createGetPutResource('/houses/current/dinner/price')
+    const [description, setDescription] = createGetPutResource(
+        '/houses/current/dinner/description'
     )
     const [eatingList, setEatingList] = createSignal<
-        EatingPerson[] | undefined
-    >(undefined)
-    apiCall('/eatingList', 'get').then(setEatingList)
-    const [eatingTotalUsers] = createInitUserListWS('/eatingTotal')
+        EatingPerson[]
+    >([])
+    apiCall('/houses/current/users/eating', 'get').then(setEatingList)
+    const [eatingTotalUsers] = createInitUserListWS('/users/current/eatingTotalPeople')
     createEffect(() => {
         const eating = untrack(eatingList)
         const eatingListNames = eating?.map(p => p.name)
-        const everyUserIncluded = eatingTotalUsers().map(u => u?.User).every(u => eatingListNames?.includes(u ?? ""))
+        const everyUserIncluded = eatingTotalUsers().map(u => u?.user).every(u => eatingListNames?.includes(u ?? ""))
         if (!everyUserIncluded) {
-            apiCall('/eatingList', 'get').then(setEatingList)
+            apiCall('/houses/current/users/eating', 'get').then(setEatingList)
             return
         }
         setEatingList(eating?.map(p => (
                 {
                     ...p,
-                    count: eatingTotalUsers().find(u => u?.User == p.name)?.Value ?? 0
+                    count: eatingTotalUsers().find(u => u?.user == p.name)?.value ?? 0
                 }
             )
         ).filter(p => p.count > 0))

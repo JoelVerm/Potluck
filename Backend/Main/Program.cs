@@ -62,15 +62,13 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-app.MapIdentityApi<User>();
+app.MapIdentityApi<User>().WithTags("Identity");
 app.UseAuthentication();
 app.UseAuthorization();
 
 var authed = app.MapGroup("").RequireAuthorization();
 
-authed.SetupHomeRoutes();
-authed.SetupCookingRoutes();
-authed.SetupShoppingRoutes();
-authed.SetupSettingsRoutes();
+authed.SetupUsersRoutes();
+authed.SetupHousesRoutes();
 
 app.Run();

@@ -12,8 +12,8 @@ import NumberRow from '~/components/NumberRow'
 import {apiCall, createInitWS} from 'api'
 
 const Shopping: Component = () => {
-    const [shoppingList, setShoppingList] = createInitWS('/shoppingList')
-    const [allPeople] = createResource(() => apiCall('/allPeople', 'get'))
+    const [shoppingList, setShoppingList] = createInitWS('/houses/current/shoppingList')
+    const [allPeople] = createResource(() => apiCall('/houses/current/users', 'get'))
     const [description, setDescription] = createSignal('')
     const [money, setMoney] = createSignal(0)
     const [points, setPoints] = createSignal(0)
@@ -41,7 +41,7 @@ const Shopping: Component = () => {
         )
     )
     const [transactions, {refetch}] = createResource(() =>
-        apiCall('/transactions', 'get')
+        apiCall('/houses/current/transactions', 'get')
     )
 
     return (
@@ -72,7 +72,7 @@ const Shopping: Component = () => {
                     <Button
                         onClick={async () => {
                             await apiCall(
-                                '/addTransaction',
+                                '/houses/current/transactions',
                                 'post',
                                 undefined,
                                 {

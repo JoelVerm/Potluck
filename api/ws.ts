@@ -1,11 +1,11 @@
 import {components} from './ws_def'
 import {createEffect, createSignal} from 'solid-js'
-import {apiCall, Path as ApiPath} from "./api";
+import {apiCall, Path as ApiPath, ReplaceUrlParams} from "./api";
 
 type Schema = keyof components['schemas']
 type UserSchema = keyof {
     [P in Schema]: components['schemas'][P] extends {
-        User?: string
+        user?: string
     } ? P : never
 }
 type Action = 'pub' | 'sub'
@@ -20,7 +20,7 @@ const _createWS = <P extends Path>(
     value: () => Type<P, 'sub'> | undefined,
     setValue: (data: Type<P, 'pub'>) => void
 ] => {
-    const ws = new WebSocket(`/api/ws${path}`)
+    const ws = new WebSocket(`/api${path}/ws`)
     const [value, setValue] = createSignal<Type<P, 'sub'>>()
     ws.onmessage = event => {
         setValue(JSON.parse(event.data))
@@ -38,7 +38,7 @@ export const createWS = <P extends Path>(
 ) => _createWS(path, undefined)
 
 export const createInitWS = <P extends Path & ApiPath>(
-    path: P
+    path: ReplaceUrlParams<P, 'get'>
 ) => _createWS<P>(path as P, () => (apiCall(path, 'get') as unknown as Promise<Type<P, 'pub'>>))
 
 const _createUserListWS = <P extends Path & UserPath>(
@@ -63,7 +63,7 @@ const _createUserListWS = <P extends Path & UserPath>(
             )
             setValues(
                 prev => [
-                    ...prev.filter(v => v?.User !== data.User),
+                    ...prev.filter(v => v?.user !== data.user),
                     ...(remove ? [] : [data])
                 ]
             )
@@ -77,5 +77,5 @@ export const createUserListWS = <P extends Path & UserPath>(
 ) => _createUserListWS(createWS(path))
 
 export const createInitUserListWS = <P extends Path & ApiPath & UserPath>(
-    path: P
+    path: ReplaceUrlParams<P, 'get'>
 ) => _createUserListWS(createInitWS(path))

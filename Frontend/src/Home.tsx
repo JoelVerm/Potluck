@@ -11,11 +11,11 @@ const homeStatusOptions = ['At home', 'Away for a bit', 'Out of town'] as const
 
 const Home: Component<{ username_signal: Signal<string> }> = props => {
     const [userName] = props.username_signal
-    const [totalBalance] = createResource(() => apiCall('/totalBalance', 'get'))
-    const [eatingTotal, setEatingTotal] = createInitUserListWS('/eatingTotal')
-    const [homeStatus, setHomeStatus] = createInitUserListWS('/homeStatus')
+    const [totalBalance] = createResource(() => apiCall('/users/current/balance', 'get'))
+    const [eatingTotal, setEatingTotal] = createInitUserListWS('/users/current/eatingTotalPeople')
+    const [homeStatus, setHomeStatus] = createInitUserListWS('/users/current/homeStatus')
     const [homeStatusList] = createResource(() =>
-        apiCall('/homeStatusList', 'get')
+        apiCall('/users/homeStatus', 'get')
     )
 
     return (
@@ -32,8 +32,8 @@ const Home: Component<{ username_signal: Signal<string> }> = props => {
             <NumberRow
                 text="Eating with"
                 value={
-                    eatingTotal().filter(v => v?.User === userName())[0]
-                        ?.Value ?? 0
+                    eatingTotal().filter(v => v?.user === userName())[0]
+                        ?.value ?? 0
                 }
                 setValue={setEatingTotal}
             />
@@ -41,8 +41,8 @@ const Home: Component<{ username_signal: Signal<string> }> = props => {
                 <span>Right now I am</span>
                 <Select
                     value={
-                        homeStatus().filter(v => v?.User === userName())[0]
-                            ?.Value
+                        homeStatus().filter(v => v?.user === userName())[0]
+                            ?.value
                     }
                     onChange={v => setHomeStatus(v!)}
                     options={homeStatusOptions.slice()}

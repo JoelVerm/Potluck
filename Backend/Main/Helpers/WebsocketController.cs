@@ -5,7 +5,10 @@ using Data;
 using Logic;
 using Microsoft.Extensions.Options;
 using NJsonSchema;
+using NJsonSchema.Generation;
 using Saunter;
+using JsonException = System.Text.Json.JsonException;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Potluck.Helpers;
 
@@ -13,18 +16,33 @@ public class WebsocketController<TLogic, TReceive, TSend>
     where TLogic : LogicBase, new()
 {
     private const int TWO_KB = 1024 * 2;
+
+    private static readonly JsonSerializerOptions jsonSerializerOptions =
+        new()
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+    private static readonly JsonSchemaGeneratorSettings jsonGeneratorSettings =
+        new SystemTextJsonSchemaGeneratorSettings
+        {
+            SerializerOptions = jsonSerializerOptions
+        };
+
+    private readonly string group;
     private readonly Func<TLogic, string, TReceive, TSend?> handler;
-
     private readonly string path;
-
     private readonly Dictionary<int, List<WebSocket>> webSockets = [];
 
     public WebsocketController(
         IEndpointRouteBuilder app,
+        string group,
         string path,
         Func<TLogic, string, TReceive, TSend?> handler
     )
     {
+        this.group = group;
         this.path = path;
         this.handler = handler;
 
@@ -37,16 +55,16 @@ public class WebsocketController<TLogic, TReceive, TSend>
         var apiDoc = app
             .ServiceProvider.GetRequiredService<IOptions<AsyncApiOptions>>()
             .Value.AsyncApi;
-        var receive = JsonSchema.FromType<TReceive>();
-        var send = JsonSchema.FromType<TSend>();
-        apiDoc.Components.Schemas.TryAdd($"/{path}_pub", receive);
-        apiDoc.Components.Schemas.TryAdd($"/{path}_sub", send);
+        var receive = JsonSchema.FromType<TReceive>(jsonGeneratorSettings);
+        var send = JsonSchema.FromType<TSend>(jsonGeneratorSettings);
+        apiDoc.Components.Schemas.TryAdd($"/{group}/{path}_pub", receive);
+        apiDoc.Components.Schemas.TryAdd($"/{group}/{path}_sub", send);
     }
 
     private void AddGetHandler(IEndpointRouteBuilder app)
     {
         app.MapGet(
-                $"/ws/{path}",
+                $"/{group}/{path}/ws",
                 async (HttpContext context, PotluckDb db) =>
                 {
                     var user = db.GetUser(context.User.Identity!.Name);
@@ -63,6 +81,7 @@ public class WebsocketController<TLogic, TReceive, TSend>
                 }
             )
             .WithGroupName("WebSockets")
+            .WithTags(UseGetPostExtensions.Capital(group))
             .WithTags("WebSockets")
             .WithName($"WebSocket {path}")
             .WithOpenApi();
@@ -90,7 +109,7 @@ public class WebsocketController<TLogic, TReceive, TSend>
             var message = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
             try
             {
-                var messageObject = JsonSerializer.Deserialize<TReceive>(message);
+                var messageObject = JsonSerializer.Deserialize<TReceive>(message, jsonSerializerOptions);
                 if (messageObject != null)
                 {
                     var result = handler(logic, userName, messageObject);
@@ -115,7 +134,7 @@ public class WebsocketController<TLogic, TReceive, TSend>
     {
         if (webSockets.TryGetValue(houseId, out var websockets))
         {
-            var messageString = JsonSerializer.Serialize(message);
+            var messageString = JsonSerializer.Serialize(message, jsonSerializerOptions);
             var messageBytes = Encoding.UTF8.GetBytes(messageString);
             await Task.WhenAll(
                 websockets.Select(ws =>

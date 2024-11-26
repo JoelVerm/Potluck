@@ -4,6 +4,10 @@ import {paths} from './api_def'
 export type Path = keyof paths
 export type PathMethod<T extends Path> = keyof paths[T]
 
+export type ReplaceUrlParams<P extends Path, M extends PathMethod<P>> = P extends `${infer S}/{${infer K}}` ? paths[P][M] extends {
+    parameters: { path: { [k in K]: infer T extends string | number | bigint | boolean | null | undefined } }
+} ? `${S}/${T}` : P : P
+
 type RequestParams<
     P extends Path,
     M extends PathMethod<P>
@@ -30,7 +34,7 @@ export type ResponseType<
     : undefined
 
 export const apiCall = <P extends Path, M extends PathMethod<P>>(
-    url: P,
+    url: ReplaceUrlParams<P, M>,
     method: M,
     params?: RequestParams<P, M>,
     body?: RequestBody<P, M>
@@ -48,19 +52,19 @@ export const apiCall = <P extends Path, M extends PathMethod<P>>(
         .catch(err => (err instanceof SyntaxError ? '' : err)) // SyntaxError is thrown when the response is not JSON
 
 
-export const createGetPostResource = <
+export const createGetPutResource = <
     P extends Path,
-    T extends ResponseType<P, 'get'> & RequestBody<P, 'post'>
+    T extends ResponseType<P, 'get'> & RequestBody<P, 'put'>
 >(
-    url: P
+    url: ReplaceUrlParams<P, 'get'>
 ): [() => T | undefined, (body: T) => void] => {
     const [value, setValue] = createSignal<T | undefined>(undefined)
     apiCall(url, 'get').then(setValue)
-    const post = (body: T) => {
+    const put = (body: T) => {
         if (body == undefined) return
-        apiCall(url, 'post', undefined, body)
+        apiCall(url, 'put', undefined, body)
             .then(() => apiCall(url, 'get'))
             .then(setValue)
     }
-    return [() => value(), post]
+    return [() => value(), put]
 }

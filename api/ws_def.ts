@@ -11,39 +11,39 @@ export interface components {
          * Integer
          * Format: int32
          */
-        "/eatingTotal_pub": number;
+        "/users/current/eatingTotalPeople_pub": number;
         /** ValueForUserOfInteger */
-        "/eatingTotal_sub": {
-            User?: string;
+        "/users/current/eatingTotalPeople_sub": {
+            user?: string;
             /** Format: int32 */
-            Value?: number;
+            value?: number;
         };
         /** String */
-        "/homeStatus_pub": string;
+        "/users/current/homeStatus_pub": string;
         /** ValueForUserOfString */
-        "/homeStatus_sub": {
-            User?: string;
-            Value?: null | string;
+        "/users/current/homeStatus_sub": {
+            user?: string;
+            value?: null | string;
+        };
+        /** String */
+        "/users/current/diet_pub": string;
+        /** ValueForUserOfString */
+        "/users/current/diet_sub": {
+            user?: string;
+            value?: null | string;
         };
         /** Boolean */
-        "/cooking_pub": boolean;
+        "/houses/current/users/cooking_pub": boolean;
         /** String */
-        "/cooking_sub": string;
+        "/houses/current/users/cooking_sub": string;
         /** String */
-        "/shoppingList_pub": string;
+        "/houses/current/name_pub": string;
         /** String */
-        "/shoppingList_sub": string;
+        "/houses/current/name_sub": string;
         /** String */
-        "/dietPreferences_pub": string;
-        /** ValueForUserOfString */
-        "/dietPreferences_sub": {
-            User?: string;
-            Value?: null | string;
-        };
+        "/houses/current/shoppingList_pub": string;
         /** String */
-        "/houseName_pub": string;
-        /** String */
-        "/houseName_sub": string;
+        "/houses/current/shoppingList_sub": string;
     };
     responses: never;
     parameters: never;
