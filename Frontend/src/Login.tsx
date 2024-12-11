@@ -28,7 +28,8 @@ const Login: Component<TabProps & { setUsername: (name: string) => void }> = pro
         >
             <TabsList class="grid w-full grid-cols-2">
                 <TabsTrigger value="login" onClick={() => setHasError(false)}>Login</TabsTrigger>
-                <TabsTrigger value="register" onClick={() => setHasError(false)}>Register</TabsTrigger>
+                <TabsTrigger value="register" data-testid="register-tab"
+                             onClick={() => setHasError(false)}>Register</TabsTrigger>
             </TabsList>
             <TabsContent value="login" class="flex flex-col gap-2">
                 <TextField
@@ -112,6 +113,7 @@ const Login: Component<TabProps & { setUsername: (name: string) => void }> = pro
                         placeholder="Email"
                         value={email()}
                         onInput={e => setEmail(e.currentTarget.value)}
+                        data-testid="register-email"
                     />
                     <TextFieldErrorMessage>
                         This must be a valid email
@@ -133,6 +135,7 @@ const Login: Component<TabProps & { setUsername: (name: string) => void }> = pro
                             placeholder="Password"
                             value={password()}
                             onInput={e => setPassword(e.currentTarget.value)}
+                            data-testid="register-password"
                         />
                         <TextFieldErrorMessage>
                             Your password must be at least 15 characters long.
@@ -156,6 +159,7 @@ const Login: Component<TabProps & { setUsername: (name: string) => void }> = pro
                             placeholder="Repeat password"
                             value={password2()}
                             onInput={e => setPassword2(e.currentTarget.value)}
+                            data-testid="register-password-2"
                         />
                         <TextFieldErrorMessage>
                             Your passwords must match

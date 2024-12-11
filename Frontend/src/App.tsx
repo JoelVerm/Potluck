@@ -62,7 +62,8 @@ const App: Component = () => {
                             <div class="flex w-full max-w-md">
                                 <For each={Object.keys(tabs)}>
                                     {key => (
-                                        <TabsTrigger class="flex-1" value={key}>{key}</TabsTrigger>
+                                        <TabsTrigger class="flex-1" data-testid={`tab-${key}`}
+                                                     value={key}>{key}</TabsTrigger>
                                     )}
                                 </For>
                             </div>

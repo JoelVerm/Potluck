@@ -5,12 +5,29 @@ on:
 
 jobs:
   end_to_end:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        working-directory: ./e2e-tests
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        working-directory: ./e2e-tests
+        run: pnpm install
+
+      - name: Install Playwright Browsers
+        working-directory: ./e2e-tests
+        run: pnpm exec playwright install --with-deps
+
       - name: Run docker-compose
         uses: hoverkraft-tech/compose-action@v2.0.1
         with:
           compose-file: "./docker-compose.yaml"
-      - name: Run tests
-        run: echo "Running tests"
+
+      - name: Run Playwright tests
+        working-directory: ./e2e-tests
+        run: pnpm exec playwright test
