@@ -16,7 +16,7 @@ Voor de API gebruik ik ASP.NET MinimalAPI. Dit systeem heeft heel veel functies 
 
 ### Database
 
-Als database gebruik ik SQL Server. Dat komt vooral omdat ik er redelijk veel ervaring mee heb, en Fontys een gratis host hiervoor aanbiedt. Verder maakt het niet heel veel uit welke database ik gebruik, omdat dit achter EFCore (als ORM) zit. Hierdoor kan ik de data gewoon vanuit C# uitlezen en is het niet nodig om SQL te schrijven. Ook heeft EFCore migraties waardoor ik verzekerd ben dat de database klopt en de gegevens veilig blijven.
+Als database gebruik ik SQL Server. Dat komt vooral omdat ik er redelijk veel ervaring mee heb, en Fontys een gratis host hiervoor aanbiedt. Verder maakt het niet heel veel uit welke database ik gebruik, omdat dit achter EFCore (als ORM) zit. Hierdoor kan ik de data eenvoudig vanuit C# uitlezen en is het niet nodig om SQL te schrijven. Ook heeft EFCore migraties waardoor ik verzekerd ben dat de database klopt en de gegevens veilig blijven.
 
 ## Hosting
 

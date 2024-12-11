@@ -1,5 +1,5 @@
-import { Accessor, Component, Setter, Signal, mergeProps } from 'solid-js'
-import { Flex, FlexProps } from '~/components/ui/flex'
+import {Component, mergeProps} from 'solid-js'
+import {Flex, FlexProps} from '~/components/ui/flex'
 
 const FlexRow: Component<FlexProps> = props => {
     const finalProps = mergeProps(

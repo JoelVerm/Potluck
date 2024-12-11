@@ -1,42 +1,53 @@
-import type { Component } from 'solid-js'
-
-import { For, Index } from 'solid-js'
-import { Flex } from '~/components/ui/flex'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '~/components/ui/select'
+import {Component, createEffect, createResource, createSignal, For, Index} from 'solid-js'
+import {Flex} from '~/components/ui/flex'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '~/components/ui/select'
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
-import { activeResource, pollingResource } from '~/lib/activeResource'
+import {client, createWS, readOnlyWS} from 'api'
+import {TabProps} from "~/App";
 
 const homeStatusOptions = ['At home', 'Away for a bit', 'Out of town'] as const
 
-type HomeStatus = (typeof homeStatusOptions)[number]
-interface HomeStatusList {
-    [index: string]: HomeStatus
-}
-
-interface TotalBalanceResponse {
-    cookingPoints: number
-    euros: number
-}
-
-const Home: Component = () => {
-    const [totalBalance] =
-        pollingResource<TotalBalanceResponse>('/api/totalBalance')
-    const [eatingTotal, setEatingTotal] =
-        activeResource<number>('/api/eatingTotal')
-    const [homeStatus, setHomeStatus] =
-        activeResource<HomeStatus>('/api/homeStatus')
-    const [homeStatusList] = pollingResource<HomeStatusList>(
-        '/api/homeStatusList'
-    )
-
+const Home: Component<TabProps> = props => {
+    const [totalBalance] = createResource(() => client.GET('/users/{name}/balance', {
+        params: {
+            path: {
+                name: props.username
+            }
+        }
+    }).then(res => res.data))
+    const [eatingTotal, setEatingTotal] = createWS('/users/{name}/eatingTotalPeopleWS', () => ({
+        name: props.username
+    }))
+    const [homeStatus, setHomeStatus] = createWS('/users/{name}/homeStatusWS', () => ({
+        name: props.username
+    }))
+    const [homeStatusList, setHomeStatusList] = createSignal<{ [key: string]: string }>({})
+    createEffect(async () => {
+        if (props.houseName.length <= 0) return
+        const res = await client.GET('/houses/{name}/users/homeStatus', {
+            params: {
+                path: {
+                    name: props.houseName
+                }
+            }
+        })
+        if (res.data != undefined)
+            setHomeStatusList(res.data)
+    })
+    createEffect(async () => {
+        Object.entries(homeStatusList()).forEach(p => {
+            readOnlyWS('/users/{name}/homeStatusWS', () => ({
+                name: p[0]
+            }), (status) => {
+                if (status != undefined && status != p[1]) {
+                    setHomeStatusList(prev => ({...prev, [p[0]]: status ?? ''}))
+                }
+            })
+        })
+    })
+    
     return (
         <Flex
             flexDirection="col"
@@ -50,13 +61,17 @@ const Home: Component = () => {
             </h1>
             <NumberRow
                 text="Eating with"
-                value={eatingTotal() ?? 0}
+                value={
+                    eatingTotal() ?? 0
+                }
                 setValue={setEatingTotal}
             />
             <FlexRow>
                 <span>Right now I am</span>
                 <Select
-                    value={homeStatus()}
+                    value={
+                        homeStatus()
+                    }
                     onChange={v => setHomeStatus(v!)}
                     options={homeStatusOptions.slice()}
                     defaultValue={homeStatusOptions[0]}
@@ -73,7 +88,7 @@ const Home: Component = () => {
                             {state => state.selectedOption()}
                         </SelectValue>
                     </SelectTrigger>
-                    <SelectContent />
+                    <SelectContent/>
                 </Select>
             </FlexRow>
             <div>

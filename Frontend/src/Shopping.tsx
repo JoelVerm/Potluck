@@ -1,45 +1,34 @@
-import type { Component } from 'solid-js'
+import type {Component} from 'solid-js'
+import {createEffect, createResource, createSignal, For, Index} from 'solid-js'
 
-import { createEffect, createSignal, For, Index } from 'solid-js'
-
-import { Button } from '~/components/ui/button'
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle
-} from '~/components/ui/card'
-import { Flex } from '~/components/ui/flex'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '~/components/ui/select'
-import {
-    TextField,
-    TextFieldInput,
-    TextFieldTextArea
-} from '~/components/ui/text-field'
+import {Button} from '~/components/ui/button'
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '~/components/ui/card'
+import {Flex} from '~/components/ui/flex'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '~/components/ui/select'
+import {TextField, TextFieldInput, TextFieldTextArea} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
-import { activeResource, pollingResource } from '~/lib/activeResource'
+import {client, createWS} from 'api'
+import {TabProps} from "~/App";
 
-interface Transaction {
-    to: string
-    from: string[]
-    description: string
-    money: number
-    points: number
-}
+const Shopping: Component<TabProps> = props => {
+    const [shoppingList, setShoppingList] = createWS(
+        `/houses/{name}/shoppingListWS`,
+        () => ({name: props.houseName})
+    )
+    const [allPeople] = createResource(async () => {
+        if (props.houseName.length <= 0) return undefined
+        const res = await client.GET(`/houses/{name}/users`, {
+            params: {
+                path: {
+                    name: props.houseName
+                }
+            }
+        })
+        return res.data
+    })
 
-const Shopping: Component = () => {
-    const [shoppingList, setShoppingList] =
-        activeResource<string>('/api/shoppingList')
-    const [allPeople] = pollingResource<string[]>('/api/allPeople')
     const [description, setDescription] = createSignal('')
     const [money, setMoney] = createSignal(0)
     const [points, setPoints] = createSignal(0)
@@ -48,7 +37,7 @@ const Shopping: Component = () => {
         [key: string]: number
     }>({})
     const changeCount = (key: string, count: number) => {
-        const { [key]: old, ...peeps } = peopleCountList()
+        const {[key]: old, ...peeps} = peopleCountList()
         if (old + count > 0) peeps[key] = old + count
         setPeopleCountList(peeps)
         return peopleCountList()[key]
@@ -66,7 +55,18 @@ const Shopping: Component = () => {
             )
         )
     )
-    const [transactions] = pollingResource<Transaction[]>('/api/transactions')
+    const [transactions, {refetch}] = createResource(async () => {
+            if (props.houseName.length <= 0) return undefined
+            const res = await client.GET("/houses/{name}/transactions", {
+                params: {
+                    path: {
+                        name: props.houseName
+                    }
+                }
+            })
+            return res.data
+        }
+    )
 
     return (
         <Flex
@@ -94,28 +94,34 @@ const Shopping: Component = () => {
                         />
                     </TextField>
                     <Button
-                        onClick={() => {
-                            fetch('/api/addTransaction', {
-                                method: 'POST',
-                                body: JSON.stringify({
-                                    from: Object.entries(
-                                        peopleCountList()
-                                    ).reduce<string[]>(
-                                        (from, v) => [
-                                            ...from,
-                                            ...Array(v[1]).fill(v[0])
-                                        ],
-                                        []
-                                    ),
-                                    description: description(),
-                                    money: money(),
-                                    points: points()
-                                }),
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Accept: 'application/json'
+                        onClick={async () => {
+                            if (props.houseName.length <= 0) return
+                            await client.POST(
+                                '/houses/{name}/transactions',
+                                {
+                                    params: {
+                                        path: {
+                                            name: props.houseName
+                                        }
+                                    },
+                                    body:
+                                        {
+                                            from: Object.entries(
+                                                peopleCountList()
+                                            ).reduce<string[]>(
+                                                (from, v) => [
+                                                    ...from,
+                                                    ...Array(v[1]).fill(v[0])
+                                                ],
+                                                []
+                                            ),
+                                            description: description(),
+                                            money: money(),
+                                            points: points()
+                                        }
                                 }
-                            })
+                            )
+                            await refetch()
                         }}
                     >
                         Add
@@ -137,7 +143,7 @@ const Shopping: Component = () => {
                     multiple
                     value={peopleList()}
                     onChange={setPeopleList}
-                    options={allPeople() ?? []}
+                    options={allPeople()?.names?.map(n => n.name ?? "") ?? []}
                     placeholder="Add some people"
                     class="w-full"
                     itemComponent={props => (
@@ -196,10 +202,10 @@ const Shopping: Component = () => {
                             )}
                         </SelectValue>
                     </SelectTrigger>
-                    <SelectContent />
+                    <SelectContent/>
                 </Select>
             </Flex>
-            <For each={transactions()}>
+            <For each={transactions()?.transactions}>
                 {transaction => (
                     <Card class="p-2 w-full">
                         <CardHeader class="p-0">
@@ -212,7 +218,7 @@ const Shopping: Component = () => {
                             </CardDescription>
                         </CardHeader>
                         <CardContent class="p-0">
-                            {transaction.from.join(', ')}
+                            {transaction.from?.join(', ')}
                         </CardContent>
                     </Card>
                 )}

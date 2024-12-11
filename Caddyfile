@@ -1,11 +1,17 @@
-localhost
+{
+    admin off
+    debug
+    auto_https off
+}
+
+http://localhost
 
 handle_path /api/* {
-	reverse_proxy :6969
+    reverse_proxy localhost:4040
 }
 
 handle_path /wall/* {
-	reverse_proxy :3100
+    reverse_proxy localhost:3100
 }
 
-reverse_proxy :3000
+reverse_proxy localhost:3000

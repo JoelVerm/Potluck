@@ -1,27 +1,34 @@
-using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Backend_Example;
-using Backend_Example.Database;
-using Microsoft.AspNetCore.Authorization;
+using Data;
+using Logic;
+using Logic.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Potluck.API;
+using Saunter;
+using Saunter.AsyncApiSchema.v2;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAsyncApiSchemaGeneration(o =>
+{
+    o.AsyncApi = new AsyncApiDocument
+    {
+        Info = new Info("Potluck API", "0.0.1"),
+        Servers = { ["ws"] = new Server("0.0.0.0", "ws") }
+    };
+});
 
 // Temporary CORS policy to allow all origins
 builder.Services.AddCors(policyBuilder =>
     policyBuilder.AddDefaultPolicy(policy =>
-        policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod()
+        policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()
     )
 );
 
-builder.Services.AddDbContext<PotluckDb>();
+builder.Services.AddDbContext<IPotluckDb, PotluckDb>();
 builder.Services.AddAuthentication().AddCookie();
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<User>().AddEntityFrameworkStores<PotluckDb>();
@@ -36,15 +43,21 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireNonAlphanumeric = false;
 });
 
+builder.Services.AddScoped(typeof(UserLogic), p => new UserLogic(p));
+builder.Services.AddScoped(typeof(HouseLogic), p => new HouseLogic(p));
+
 var app = builder.Build();
 
 app.UseCors();
+app.UseWebSockets();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    app.MapAsyncApiDocuments();
+    app.MapAsyncApiUi();
 }
 
 using (var scope = app.Services.CreateScope())
@@ -53,15 +66,13 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-app.MapIdentityApi<User>();
+app.MapIdentityApi<User>().WithTags("Identity");
 app.UseAuthentication();
 app.UseAuthorization();
 
 var authed = app.MapGroup("").RequireAuthorization();
 
-authed.SetupHomeRoutes();
-authed.SetupCookingRoutes();
-authed.SetupShoppingRoutes();
-authed.SetupSettingsRoutes();
+authed.MapGroup("").SetupUsersRoutes().WithTags("Users");
+authed.MapGroup("").SetupHousesRoutes().WithTags("Houses");
 
 app.Run();

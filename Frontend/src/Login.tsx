@@ -1,23 +1,25 @@
-import type { Component } from 'solid-js'
-
-import { createSignal } from 'solid-js'
-import { Button } from '~/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
-import {
-    TextField,
-    TextFieldErrorMessage,
-    TextFieldInput
-} from '~/components/ui/text-field'
+import type {Component} from 'solid-js'
+import {createSignal} from 'solid-js'
+import {Button} from '~/components/ui/button'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '~/components/ui/tabs'
+import {TextField, TextFieldErrorMessage, TextFieldInput} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
+import {TabProps} from "~/App";
+import {client} from "api";
 
 const isValidEmail = (email: string) => /.+@.+\..+/.test(email)
-const isValidPassword = (password: string) => /[a-zA-Z]{15,}/.test(password)
+const isValidPassword = (password: string) =>
+    password.length >= 15 &&
+    password.match(/[a-z]/) &&
+    password.match(/[A-Z]/) &&
+    !password.match(/[^a-zA-Z]/)
 
-const Login: Component = () => {
+const Login: Component<TabProps & { setUsername: (name: string) => void }> = props => {
     const [email, setEmail] = createSignal('')
     const [password, setPassword] = createSignal('')
     const [password2, setPassword2] = createSignal('')
+    const [hasError, setHasError] = createSignal(false)
 
     return (
         <Tabs
@@ -25,8 +27,8 @@ const Login: Component = () => {
             class="max-w-md h-screen mx-auto p-2 flex flex-col justify-center"
         >
             <TabsList class="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
+                <TabsTrigger value="login" onClick={() => setHasError(false)}>Login</TabsTrigger>
+                <TabsTrigger value="register" onClick={() => setHasError(false)}>Register</TabsTrigger>
             </TabsList>
             <TabsContent value="login" class="flex flex-col gap-2">
                 <TextField
@@ -64,9 +66,7 @@ const Login: Component = () => {
                         onInput={e => setPassword(e.currentTarget.value)}
                     />
                     <TextFieldErrorMessage>
-                        Your password must be at least 15 characters long. It
-                        can only contain letters from a-z. This way you can
-                        easily remember it, but it will still be safe.
+                        This password is invalid
                     </TextFieldErrorMessage>
                 </TextField>
                 <Button
@@ -77,21 +77,25 @@ const Login: Component = () => {
                             !isValidPassword(password())
                         )
                             return
-                        fetch('/api/login?useCookies=true', {
-                            method: 'POST',
-                            body: JSON.stringify({
+                        client.POST('/login', {
+                            params: {
+                                query: {
+                                    useCookies: true
+                                }
+                            },
+                            body: {
                                 email: email(),
                                 password: password()
-                            }),
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Accept: 'application/json'
                             }
+                        }).then(res => {
+                            setHasError(res.error != undefined)
+                            if (res.error == undefined) props.setUsername(email())
                         })
                     }}
                 >
                     Login
                 </Button>
+                <p class="text-red-500">{hasError() ? 'Could not login' : ''}</p>
             </TabsContent>
             <TabsContent value="register" class="flex flex-col gap-2">
                 <TextField
@@ -132,8 +136,10 @@ const Login: Component = () => {
                         />
                         <TextFieldErrorMessage>
                             Your password must be at least 15 characters long.
-                            It can only contain letters from a-z. This way you
-                            can easily remember it, but it will still be safe.
+                            It can only contain letters from a-z and has to
+                            contain both lowercase and uppercase letters. This
+                            way you can easily remember it, but it will still be
+                            safe.
                         </TextFieldErrorMessage>
                     </TextField>
                     <TextField
@@ -165,33 +171,40 @@ const Login: Component = () => {
                             password2() !== password()
                         )
                             return
-                        fetch('/api/register', {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                email: email(),
-                                password: password()
-                            }),
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Accept: 'application/json'
-                            }
-                        }).then(() =>
-                            fetch('/api/login?useCookies=true', {
-                                method: 'POST',
-                                body: JSON.stringify({
+                        client.POST(
+                            '/register',
+                            {
+                                body: {
                                     email: email(),
                                     password: password()
-                                }),
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Accept: 'application/json'
                                 }
-                            })
+                            }
                         )
+                            .then(() =>
+                                client.POST(
+                                    '/login',
+                                    {
+                                        params: {
+                                            query: {
+                                                useCookies: true
+                                            }
+                                        },
+                                        body: {
+                                            email: email(),
+                                            password: password()
+                                        }
+                                    }
+                                )
+                            )
+                            .then(res => {
+                                setHasError(res.error != undefined)
+                                if (res.error == undefined) props.setUsername(email())
+                            })
                     }}
                 >
                     Register
                 </Button>
+                <p class="text-red-500">{hasError() ? 'Could not register' : ''}</p>
             </TabsContent>
         </Tabs>
     )

@@ -1,34 +1,36 @@
-import type { Component } from 'solid-js'
+import {Component, createEffect, createResource, createSignal, For, Show} from 'solid-js'
 
-import { createSignal, For } from 'solid-js'
-
-import { Button } from '~/components/ui/button'
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger
-} from '~/components/ui/dialog'
-import { Flex } from '~/components/ui/flex'
-import {
-    TextField,
-    TextFieldInput,
-    TextFieldLabel
-} from '~/components/ui/text-field'
+import {Button} from '~/components/ui/button'
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '~/components/ui/dialog'
+import {Flex} from '~/components/ui/flex'
+import {TextField, TextFieldInput} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
-import { activeResource, pollingResource } from '~/lib/activeResource'
+import {client, createWS} from 'api'
+import {TabProps} from "~/App";
 
-const Settings: Component = () => {
-    const [dietPreferences, setDietPreferences] = activeResource<string>(
-        '/api/dietPreferences'
-    )
-    const [houseName, setHouseName] = activeResource<string>('/api/houseName')
-    const [houseMembers] = pollingResource<string[]>('/api/houseMembers')
+const Settings: Component<TabProps & { setHouseName: (name: string) => void }> = props => {
+    const [dietPreferences, setDietPreferences] =
+        createWS('/users/{name}/dietWS', () => ({name: props.username}))
+    const [houseNameWS, setHouseNameWS] = createWS('/houses/{name}/nameWS', () => ({
+        name: props.houseName
+    }))
+    createEffect(() => {
+        props.setHouseName(houseNameWS()?.toString() ?? '')
+    })
+    const [houseMembers] = createResource(async () => {
+        if (props.houseName.length <= 0) return undefined
+        const res = await client.GET('/houses/{name}/users', {
+            params: {
+                path: {
+                    name: props.houseName
+                }
+            }
+        })
+        return res.data
+    })
 
-    const [newHouseName, setNewHouseName] = createSignal('')
+    const [newHouseName, setNewHouseName] = createSignal(props.houseName)
 
     return (
         <Flex
@@ -41,7 +43,9 @@ const Settings: Component = () => {
                 <TextFieldInput
                     type="text"
                     placeholder="Diet info"
-                    value={dietPreferences()}
+                    value={
+                        dietPreferences() ?? ''
+                    }
                     onInput={e => setDietPreferences(e.currentTarget.value)}
                 />
             </TextField>
@@ -51,88 +55,93 @@ const Settings: Component = () => {
                 alignItems="start"
                 class="gap-2 rounded border p-2"
             >
-                {(houseName()?.length ?? 0) <= 0 ? (
-                    <>
-                        <TextField class="w-full">
-                            <TextFieldInput
-                                type="text"
-                                placeholder="House name"
-                                value={newHouseName()}
-                                onInput={e =>
-                                    setNewHouseName(e.currentTarget.value)
-                                }
-                            />
-                        </TextField>
-                        <Button
-                            onClick={() => {
-                                if ((newHouseName()?.length ?? 0) > 0) {
-                                    fetch('/api/createHouse', {
-                                        method: 'POST',
-                                        body: JSON.stringify(newHouseName()),
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            Accept: 'application/json'
+                <Show when={(houseNameWS()?.length ?? 0) > 0} fallback={<>
+                    <TextField class="w-full">
+                        <TextFieldInput
+                            type="text"
+                            placeholder="House name"
+                            value={newHouseName()}
+                            onInput={e =>
+                                setNewHouseName(e.currentTarget.value)
+                            }
+                        />
+                    </TextField>
+                    <Button
+                        onClick={() => {
+                            if ((newHouseName()?.length ?? 0) > 0) {
+                                client.POST(
+                                    '/houses',
+                                    {
+                                        body: {
+                                            name: newHouseName()
                                         }
-                                    })
-                                }
-                            }}
-                        >
-                            Create house
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <TextField class="w-full">
-                            <TextFieldInput
-                                type="text"
-                                placeholder="House name"
-                                value={houseName()}
-                                onInput={e =>
-                                    setHouseName(e.currentTarget.value)
-                                }
-                            />
-                        </TextField>
-                        <For each={houseMembers()}>
-                            {member => (
-                                <FlexRow>
-                                    <span>{member}</span>
-                                    <Button
-                                        onClick={() => {
-                                            fetch('/api/removeHouseMember', {
-                                                method: 'POST',
-                                                body: JSON.stringify(member),
-                                                headers: {
-                                                    'Content-Type':
-                                                        'application/json',
-                                                    Accept: 'application/json'
+                                    }
+                                ).then(res => {
+                                    if (res.response.ok) {
+                                        props.setHouseName(newHouseName())
+                                    }
+                                })
+                            }
+                        }}
+                    >
+                        Create house
+                    </Button>
+                </>}>
+                    <TextField class="w-full">
+                        <TextFieldInput
+                            type="text"
+                            placeholder="House name"
+                            value={houseNameWS()}
+                            onInput={e =>
+                                setHouseNameWS(e.currentTarget.value)
+                            }
+                        />
+                    </TextField>
+                    <For each={houseMembers()?.names}>
+                        {member => (
+                            <FlexRow>
+                                <span>{member.name}</span>
+                                <Button
+                                    onClick={() => {
+                                        if (props.houseName.length <= 0) return
+                                        client.DELETE(
+                                            '/houses/{name}/users/{username}',
+                                            {
+                                                params: {
+                                                    path: {
+                                                        name: props.houseName,
+                                                        username: member.name ?? ""
+                                                    }
                                                 }
-                                            })
-                                        }}
-                                    >
-                                        Remove
-                                    </Button>
-                                </FlexRow>
-                            )}
-                        </For>
-                        <AddUserDialog />
-                    </>
-                )}
+                                            }
+                                        )
+                                    }}
+                                >
+                                    Remove
+                                </Button>
+                            </FlexRow>
+                        )}
+                    </For>
+                    <AddUserDialog {...props}/>
+                </Show>
             </Flex>
         </Flex>
     )
 }
 
-const AddUserDialog: Component = () => {
+const AddUserDialog: Component<TabProps> = props => {
     const [open, setOpen] = createSignal(false)
     const [userName, setUserName] = createSignal('')
 
     const addMember = () => {
-        fetch('/api/addHouseMember', {
-            method: 'POST',
-            body: JSON.stringify(userName()),
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
+        client.POST('/houses/{name}/users', {
+            params: {
+                path: {
+                    name: props.houseName
+                }
+            },
+            body: {
+                name: userName()
             }
         })
         setOpen(false)
