@@ -2,12 +2,16 @@ FROM node:slim AS build
 
 RUN corepack enable pnpm && corepack install -g pnpm
 
-COPY . .
-RUN rm -rf node_modules
+COPY ./api /api
+COPY ./Frontend /frontend
 
-RUN pnpm install
+WORKDIR /api
+RUN pnpm i
+
+WORKDIR /frontend
+RUN pnpm i
 RUN pnpm build
 
 FROM --platform=linux/arm64 lipanski/docker-static-website:latest
 
-COPY --from=build /dist .
+COPY --from=build /frontend/dist .

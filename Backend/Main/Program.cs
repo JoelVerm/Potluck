@@ -24,7 +24,7 @@ builder.Services.AddAsyncApiSchemaGeneration(o =>
 // Temporary CORS policy to allow all origins
 builder.Services.AddCors(policyBuilder =>
     policyBuilder.AddDefaultPolicy(policy =>
-        policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()
+        policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()
     )
 );
 
