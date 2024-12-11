@@ -1,32 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Data;
+﻿using Logic;
 using Logic.Models;
-using Potluck;
 
-namespace PotluckTest
+namespace PotluckTest;
+
+internal class MockDb : IPotluckDb
 {
-    internal class MockDb : Logic.IPotluckDb
+    public User? User { get; set; } = null;
+
+    public string? GetUserPassedName { get; private set; }
+
+    public int SaveChangesTimesCalled { get; private set; }
+
+    public House? House { get; set; } = null;
+
+    public string? GetHousePassedName { get; private set; }
+
+    public int AddHouseCalledTimes { get; private set; }
+
+    public User? GetUser(string? name)
     {
-        public User? User { get; set; } = null;
+        GetUserPassedName = name;
+        return User;
+    }
 
-        public string? GetUserPassedName { get; private set; } = null;
+    public House? GetHouse(string name)
+    {
+        GetHousePassedName = name;
+        return House;
+    }
 
-        public User? GetUser(string? name)
-        {
-            GetUserPassedName = name;
-            return User;
-        }
+    public void AddHouse(House house)
+    {
+        AddHouseCalledTimes++;
+    }
 
-        public int SaveChangesTimesCalled { get; private set; } = 0;
-
-        public int SaveChanges()
-        {
-            SaveChangesTimesCalled++;
-            return 1;
-        }
+    public int SaveChanges()
+    {
+        SaveChangesTimesCalled++;
+        return 1;
     }
 }

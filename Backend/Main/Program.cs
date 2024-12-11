@@ -1,4 +1,5 @@
 using Data;
+using Logic;
 using Logic.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,7 @@ builder.Services.AddCors(policyBuilder =>
     )
 );
 
-builder.Services.AddDbContext<PotluckDb>();
+builder.Services.AddDbContext<IPotluckDb, PotluckDb>();
 builder.Services.AddAuthentication().AddCookie();
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<User>().AddEntityFrameworkStores<PotluckDb>();
@@ -41,6 +42,9 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireDigit = false;
     options.Password.RequireNonAlphanumeric = false;
 });
+
+builder.Services.AddScoped(typeof(UserLogic), p => new UserLogic(p));
+builder.Services.AddScoped(typeof(HouseLogic), p => new HouseLogic(p));
 
 var app = builder.Build();
 
@@ -68,7 +72,7 @@ app.UseAuthorization();
 
 var authed = app.MapGroup("").RequireAuthorization();
 
-authed.SetupUsersRoutes();
-authed.SetupHousesRoutes();
+authed.MapGroup("").SetupUsersRoutes().WithTags("Users");
+authed.MapGroup("").SetupHousesRoutes().WithTags("Houses");
 
 app.Run();

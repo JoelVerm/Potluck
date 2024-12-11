@@ -1,5 +1,4 @@
-import type {Component, Signal} from 'solid-js'
-import {createResource, createSignal, For} from 'solid-js'
+import {Component, createEffect, createResource, createSignal, For, Show} from 'solid-js'
 
 import {Button} from '~/components/ui/button'
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '~/components/ui/dialog'
@@ -7,17 +6,31 @@ import {Flex} from '~/components/ui/flex'
 import {TextField, TextFieldInput} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
-import {apiCall, createInitUserListWS, createInitWS} from 'api'
+import {client, createWS} from 'api'
+import {TabProps} from "~/App";
 
-const Settings: Component<{ username_signal: Signal<string> }> = props => {
-    const [userName] = props.username_signal
-
+const Settings: Component<TabProps & { setHouseName: (name: string) => void }> = props => {
     const [dietPreferences, setDietPreferences] =
-        createInitUserListWS('/users/current/diet')
-    const [houseName, setHouseName] = createInitWS('/houses/current/name')
-    const [houseMembers] = createResource(() => apiCall('/houses/current/users', 'get'))
+        createWS('/users/{name}/dietWS', () => ({name: props.username}))
+    const [houseNameWS, setHouseNameWS] = createWS('/houses/{name}/nameWS', () => ({
+        name: props.houseName
+    }))
+    createEffect(() => {
+        props.setHouseName(houseNameWS()?.toString() ?? '')
+    })
+    const [houseMembers] = createResource(async () => {
+        if (props.houseName.length <= 0) return undefined
+        const res = await client.GET('/houses/{name}/users', {
+            params: {
+                path: {
+                    name: props.houseName
+                }
+            }
+        })
+        return res.data
+    })
 
-    const [newHouseName, setNewHouseName] = createSignal('')
+    const [newHouseName, setNewHouseName] = createSignal(props.houseName)
 
     return (
         <Flex
@@ -31,8 +44,7 @@ const Settings: Component<{ username_signal: Signal<string> }> = props => {
                     type="text"
                     placeholder="Diet info"
                     value={
-                        dietPreferences().filter(e => e?.user == userName())[0]
-                            ?.value ?? ''
+                        dietPreferences() ?? ''
                     }
                     onInput={e => setDietPreferences(e.currentTarget.value)}
                 />
@@ -43,76 +55,95 @@ const Settings: Component<{ username_signal: Signal<string> }> = props => {
                 alignItems="start"
                 class="gap-2 rounded border p-2"
             >
-                {(houseName()?.length ?? 0) <= 0 ? (
-                    <>
-                        <TextField class="w-full">
-                            <TextFieldInput
-                                type="text"
-                                placeholder="House name"
-                                value={newHouseName()}
-                                onInput={e =>
-                                    setNewHouseName(e.currentTarget.value)
-                                }
-                            />
-                        </TextField>
-                        <Button
-                            onClick={() => {
-                                if ((newHouseName()?.length ?? 0) > 0) {
-                                    apiCall(
-                                        '/houses',
-                                        'post',
-                                        undefined,
-                                        newHouseName()
-                                    )
-                                }
-                            }}
-                        >
-                            Create house
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <TextField class="w-full">
-                            <TextFieldInput
-                                type="text"
-                                placeholder="House name"
-                                value={houseName()}
-                                onInput={e =>
-                                    setHouseName(e.currentTarget.value)
-                                }
-                            />
-                        </TextField>
-                        <For each={houseMembers()}>
-                            {member => (
-                                <FlexRow>
-                                    <span>{member}</span>
-                                    <Button
-                                        onClick={() => {
-                                            apiCall(
-                                                `/houses/current/users/${member}`,
-                                                'delete'
-                                            )
-                                        }}
-                                    >
-                                        Remove
-                                    </Button>
-                                </FlexRow>
-                            )}
-                        </For>
-                        <AddUserDialog/>
-                    </>
-                )}
+                <Show when={(houseNameWS()?.length ?? 0) > 0} fallback={<>
+                    <TextField class="w-full">
+                        <TextFieldInput
+                            type="text"
+                            placeholder="House name"
+                            value={newHouseName()}
+                            onInput={e =>
+                                setNewHouseName(e.currentTarget.value)
+                            }
+                        />
+                    </TextField>
+                    <Button
+                        onClick={() => {
+                            if ((newHouseName()?.length ?? 0) > 0) {
+                                client.POST(
+                                    '/houses',
+                                    {
+                                        body: {
+                                            name: newHouseName()
+                                        }
+                                    }
+                                ).then(res => {
+                                    if (res.response.ok) {
+                                        props.setHouseName(newHouseName())
+                                    }
+                                })
+                            }
+                        }}
+                    >
+                        Create house
+                    </Button>
+                </>}>
+                    <TextField class="w-full">
+                        <TextFieldInput
+                            type="text"
+                            placeholder="House name"
+                            value={houseNameWS()}
+                            onInput={e =>
+                                setHouseNameWS(e.currentTarget.value)
+                            }
+                        />
+                    </TextField>
+                    <For each={houseMembers()?.names}>
+                        {member => (
+                            <FlexRow>
+                                <span>{member.name}</span>
+                                <Button
+                                    onClick={() => {
+                                        if (props.houseName.length <= 0) return
+                                        client.DELETE(
+                                            '/houses/{name}/users/{username}',
+                                            {
+                                                params: {
+                                                    path: {
+                                                        name: props.houseName,
+                                                        username: member.name ?? ""
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    }}
+                                >
+                                    Remove
+                                </Button>
+                            </FlexRow>
+                        )}
+                    </For>
+                    <AddUserDialog {...props}/>
+                </Show>
             </Flex>
         </Flex>
     )
 }
 
-const AddUserDialog: Component = () => {
+const AddUserDialog: Component<TabProps> = props => {
     const [open, setOpen] = createSignal(false)
     const [userName, setUserName] = createSignal('')
 
     const addMember = () => {
-        apiCall('/houses/current/users', 'post', undefined, userName())
+        client.POST('/houses/{name}/users', {
+            params: {
+                path: {
+                    name: props.houseName
+                }
+            },
+            body: {
+                name: userName()
+            }
+        })
         setOpen(false)
     }
 

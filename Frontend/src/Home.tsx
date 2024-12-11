@@ -1,23 +1,53 @@
-import type {Component, Signal} from 'solid-js'
-import {createResource, For, Index} from 'solid-js'
+import {Component, createEffect, createResource, createSignal, For, Index} from 'solid-js'
 import {Flex} from '~/components/ui/flex'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '~/components/ui/select'
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
-import {apiCall, createInitUserListWS} from 'api'
+import {client, createWS, readOnlyWS} from 'api'
+import {TabProps} from "~/App";
 
 const homeStatusOptions = ['At home', 'Away for a bit', 'Out of town'] as const
 
-const Home: Component<{ username_signal: Signal<string> }> = props => {
-    const [userName] = props.username_signal
-    const [totalBalance] = createResource(() => apiCall('/users/current/balance', 'get'))
-    const [eatingTotal, setEatingTotal] = createInitUserListWS('/users/current/eatingTotalPeople')
-    const [homeStatus, setHomeStatus] = createInitUserListWS('/users/current/homeStatus')
-    const [homeStatusList] = createResource(() =>
-        apiCall('/users/homeStatus', 'get')
-    )
-
+const Home: Component<TabProps> = props => {
+    const [totalBalance] = createResource(() => client.GET('/users/{name}/balance', {
+        params: {
+            path: {
+                name: props.username
+            }
+        }
+    }).then(res => res.data))
+    const [eatingTotal, setEatingTotal] = createWS('/users/{name}/eatingTotalPeopleWS', () => ({
+        name: props.username
+    }))
+    const [homeStatus, setHomeStatus] = createWS('/users/{name}/homeStatusWS', () => ({
+        name: props.username
+    }))
+    const [homeStatusList, setHomeStatusList] = createSignal<{ [key: string]: string }>({})
+    createEffect(async () => {
+        if (props.houseName.length <= 0) return
+        const res = await client.GET('/houses/{name}/users/homeStatus', {
+            params: {
+                path: {
+                    name: props.houseName
+                }
+            }
+        })
+        if (res.data != undefined)
+            setHomeStatusList(res.data)
+    })
+    createEffect(async () => {
+        Object.entries(homeStatusList()).forEach(p => {
+            readOnlyWS('/users/{name}/homeStatusWS', () => ({
+                name: p[0]
+            }), (status) => {
+                if (status != undefined && status != p[1]) {
+                    setHomeStatusList(prev => ({...prev, [p[0]]: status ?? ''}))
+                }
+            })
+        })
+    })
+    
     return (
         <Flex
             flexDirection="col"
@@ -32,8 +62,7 @@ const Home: Component<{ username_signal: Signal<string> }> = props => {
             <NumberRow
                 text="Eating with"
                 value={
-                    eatingTotal().filter(v => v?.user === userName())[0]
-                        ?.value ?? 0
+                    eatingTotal() ?? 0
                 }
                 setValue={setEatingTotal}
             />
@@ -41,8 +70,7 @@ const Home: Component<{ username_signal: Signal<string> }> = props => {
                 <span>Right now I am</span>
                 <Select
                     value={
-                        homeStatus().filter(v => v?.user === userName())[0]
-                            ?.value
+                        homeStatus()
                     }
                     onChange={v => setHomeStatus(v!)}
                     options={homeStatusOptions.slice()}

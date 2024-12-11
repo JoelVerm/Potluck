@@ -1,9 +1,14 @@
-﻿namespace Logic
-{
-    public interface IPotluckDb
-    {
-        public int SaveChanges();
+﻿using Logic.Models;
 
-        public Models.User? GetUser(string? name);
-    }
+namespace Logic;
+
+public interface IPotluckDb
+{
+    public int SaveChanges();
+
+    public User? GetUser(string? name);
+
+    public House? GetHouse(string name);
+
+    public void AddHouse(House house);
 }

@@ -1,12 +1,12 @@
-import {Component, createEffect, createSignal, Index, Signal, untrack} from 'solid-js'
+import {Component, createEffect, createResource, createSignal, Index, Show} from 'solid-js'
 import {Flex} from '~/components/ui/flex'
 import {Switch, SwitchControl, SwitchThumb} from '~/components/ui/switch'
 import {TextField, TextFieldInput} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
 import NumberRow from '~/components/NumberRow'
-import {createInitUserListWS, createInitWS} from 'api'
-import {apiCall, createGetPutResource} from 'api/api'
+import {client, createWS, readOnlyWS} from 'api'
+import {TabProps} from "~/App";
 
 interface EatingPerson {
     name: string
@@ -15,37 +15,66 @@ interface EatingPerson {
     diet: string
 }
 
-const Cooking: Component<{ username_signal: Signal<string> }> = props => {
-    const [username] = props.username_signal
-    const [cookingUser, setCooking] = createInitWS('/houses/current/users/cooking')
-    const [cookingTotal, setCookingTotal] =
-        createGetPutResource('/houses/current/dinner/price')
-    const [description, setDescription] = createGetPutResource(
-        '/houses/current/dinner/description'
-    )
+const Cooking: Component<TabProps> = props => {
+    const [cookingUser, setCooking] = createWS('/houses/{name}/cookingUserWS', () => ({
+        name: props.houseName
+    }))
+    const [dinnerInfo, {refetch}] = createResource(async () => {
+        if (props.houseName.length <= 0) return undefined
+        const res = await client.GET('/houses/{name}/dinner', {
+            params: {
+                path: {
+                    name: props.houseName
+                }
+            }
+        })
+        return res.data
+    })
+    const setCookingInfo = (price: number | undefined, description: string | undefined) => {
+        if (props.houseName.length <= 0) return
+        client.PUT('/houses/{name}/dinner', {
+            params: {
+                path: {
+                    name: props.houseName
+                }
+            },
+            body: {
+                price: price ?? dinnerInfo()?.price ?? 0,
+                description: description ?? dinnerInfo()?.description ?? ''
+            }
+        }).then(() => refetch())
+    }
+    const setCookingTotal = (price: number) => setCookingInfo(price, undefined)
+    const setDescription = (description: string) => setCookingInfo(undefined, description)
     const [eatingList, setEatingList] = createSignal<
         EatingPerson[]
     >([])
-    apiCall('/houses/current/users/eating', 'get').then(setEatingList)
-    const [eatingTotalUsers] = createInitUserListWS('/users/current/eatingTotalPeople')
-    createEffect(() => {
-        const eating = untrack(eatingList)
-        const eatingListNames = eating?.map(p => p.name)
-        const everyUserIncluded = eatingTotalUsers().map(u => u?.user).every(u => eatingListNames?.includes(u ?? ""))
-        if (!everyUserIncluded) {
-            apiCall('/houses/current/users/eating', 'get').then(setEatingList)
-            return
-        }
-        setEatingList(eating?.map(p => (
-                {
-                    ...p,
-                    count: eatingTotalUsers().find(u => u?.user == p.name)?.value ?? 0
+    createEffect(async () => {
+        if (props.houseName.length <= 0) return
+        const res = await client.GET('/houses/{name}/users/eating', {
+            params: {
+                path: {
+                    name: props.houseName
                 }
-            )
-        ).filter(p => p.count > 0))
+            }
+        })
+        if (res.data != undefined)
+            setEatingList(res.data.eatingList as EatingPerson[])
+    })
+    createEffect(async () => {
+        eatingList().forEach(p => {
+            readOnlyWS('/users/{name}/eatingTotalPeopleWS', () => ({
+                name: p.name
+            }), (total) => {
+                if (total != undefined && total != p.count) {
+                    p.count = total ?? 0
+                    setEatingList(eatingList().filter(u => u.count > 0))
+                }
+            })
+        })
     })
 
-    const cooking = () => cookingUser() == username()
+    const cooking = () => cookingUser() == props.username
 
     return (
         <Flex
@@ -54,46 +83,46 @@ const Cooking: Component<{ username_signal: Signal<string> }> = props => {
             justifyContent="center"
             class="gap-2"
         >
-            {cooking() || ((cookingUser()?.trim() ?? "") == "") ? (
-                <>
-                    <FlexRow>
-                        <span>I'm cooking today!</span>
-                        <Switch
-                            class="flex items-center space-x-2"
-                            checked={cooking()}
-                            onChange={setCooking}
-                        >
-                            <SwitchControl>
-                                <SwitchThumb/>
-                            </SwitchControl>
-                        </Switch>
-                    </FlexRow>
-                    <NumberRow
-                        text="Cooking total"
-                        value={cookingTotal() ?? 0}
-                        setValue={setCookingTotal}
-                        step={0.01}
-                        enabled={cooking()}
+            <Show
+                when={cooking() || ((cookingUser()?.trim() ?? "") == "")}
+                fallback={<h1>{cookingUser()} is cooking
+                    today!</h1>}
+            >
+                <FlexRow>
+                    <span>I'm cooking today!</span>
+                    <Switch
+                        class="flex items-center space-x-2"
+                        checked={cooking()}
+                        onChange={setCooking}
+                    >
+                        <SwitchControl>
+                            <SwitchThumb/>
+                        </SwitchControl>
+                    </Switch>
+                </FlexRow>
+                <NumberRow
+                    text="Cooking total"
+                    value={dinnerInfo()?.price ?? 0}
+                    setValue={setCookingTotal}
+                    step={0.01}
+                    enabled={cooking()}
+                />
+                <TextField class="w-full">
+                    <TextFieldInput
+                        type="text"
+                        placeholder="Meal description"
+                        value={dinnerInfo()?.description ?? ''}
+                        onInput={e => setDescription(e.currentTarget.value)}
+                        disabled={!cooking()}
                     />
-                    <TextField class="w-full">
-                        <TextFieldInput
-                            type="text"
-                            placeholder="Meal description"
-                            value={description()}
-                            onInput={e => setDescription(e.currentTarget.value)}
-                            disabled={!cooking()}
-                        />
-                    </TextField>
-                </>
-            ) : (
-                <h1>{cookingUser()} is cooking today!</h1>
-            )}
+                </TextField>
+            </Show>
             <h1>
-                {eatingList()?.reduce((t, p) => t + p.count, 0) ?? 0} people
+                {eatingList().reduce((t, p) => t + p.count, 0) ?? 0} people
                 eating today
             </h1>
             <Index
-                each={eatingList()?.toSorted((a, b) =>
+                each={eatingList().toSorted((a, b) =>
                     a.name.localeCompare(b.name)
                 )}
             >

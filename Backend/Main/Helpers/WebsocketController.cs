@@ -1,8 +1,6 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using Data;
-using Logic;
 using Microsoft.Extensions.Options;
 using NJsonSchema;
 using NJsonSchema.Generation;
@@ -12,11 +10,11 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Potluck.Helpers;
 
-public class WebsocketController<TLogic, TReceive, TSend>
-    where TLogic : LogicBase, new()
+public class WebsocketController<TReceive, TSend>
 {
     private const int TWO_KB = 1024 * 2;
 
+    // ReSharper disable once StaticMemberInGenericType
     private static readonly JsonSerializerOptions jsonSerializerOptions =
         new()
         {
@@ -24,79 +22,71 @@ public class WebsocketController<TLogic, TReceive, TSend>
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
+    // ReSharper disable once StaticMemberInGenericType
     private static readonly JsonSchemaGeneratorSettings jsonGeneratorSettings =
         new SystemTextJsonSchemaGeneratorSettings
         {
             SerializerOptions = jsonSerializerOptions
         };
 
-    private readonly string group;
-    private readonly Func<TLogic, string, TReceive, TSend?> handler;
-    private readonly string path;
     private readonly Dictionary<int, List<WebSocket>> webSockets = [];
 
     public WebsocketController(
         IEndpointRouteBuilder app,
-        string group,
-        string path,
-        Func<TLogic, string, TReceive, TSend?> handler
+        string path
     )
     {
-        this.group = group;
-        this.path = path;
-        this.handler = handler;
-
-        AddSchemas(app);
-        AddGetHandler(app);
-    }
-
-    private void AddSchemas(IEndpointRouteBuilder app)
-    {
+        Path = path;
         var apiDoc = app
             .ServiceProvider.GetRequiredService<IOptions<AsyncApiOptions>>()
             .Value.AsyncApi;
         var receive = JsonSchema.FromType<TReceive>(jsonGeneratorSettings);
         var send = JsonSchema.FromType<TSend>(jsonGeneratorSettings);
-        apiDoc.Components.Schemas.TryAdd($"/{group}/{path}_pub", receive);
-        apiDoc.Components.Schemas.TryAdd($"/{group}/{path}_sub", send);
+        apiDoc.Components.Schemas.TryAdd($"{path}_pub", receive);
+        apiDoc.Components.Schemas.TryAdd($"{path}_sub", send);
     }
 
-    private void AddGetHandler(IEndpointRouteBuilder app)
+    public string Path { get; }
+
+    public async Task<IResult> Handle(
+        HttpContext context,
+        int? houseId,
+        Action<TReceive> set,
+        Func<TSend> get
+    )
     {
-        app.MapGet(
-                $"/{group}/{path}/ws",
-                async (HttpContext context, PotluckDb db) =>
-                {
-                    var user = db.GetUser(context.User.Identity!.Name);
-                    if (user == null)
-                        return Results.Unauthorized();
-                    if (!context.WebSockets.IsWebSocketRequest) return Results.BadRequest();
-                    var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                    if (user.House == null)
-                        return Results.NoContent();
-                    var houseId = user.House.Id;
-                    var logic = LogicBase.Create<TLogic>(user, db);
-                    await HandleWebsocket(webSocket, houseId, logic, user.UserName ?? "");
-                    return Results.Ok();
-                }
-            )
-            .WithGroupName("WebSockets")
-            .WithTags(UseGetPostExtensions.Capital(group))
-            .WithTags("WebSockets")
-            .WithName($"WebSocket {path}")
-            .WithOpenApi();
+        if (!context.WebSockets.IsWebSocketRequest) return Results.BadRequest();
+        var ws = await context.WebSockets.AcceptWebSocketAsync();
+        await HandleWebsocket(ws, houseId, set, get);
+        return Results.NoContent();
     }
 
-    private async Task HandleWebsocket(WebSocket ws, int houseId, TLogic logic, string userName)
+    private async Task HandleWebsocket(
+        WebSocket ws,
+        int? houseId,
+        Action<TReceive> set,
+        Func<TSend> get
+    )
     {
-        if (!webSockets.ContainsKey(houseId))
-            webSockets.Add(houseId, []);
-        webSockets[houseId].Add(ws);
-        await RunReadLoop(ws, houseId, logic, userName);
-        webSockets[houseId].Remove(ws);
+        if (houseId.HasValue)
+        {
+            if (!webSockets.ContainsKey(houseId.Value))
+                webSockets.Add(houseId.Value, []);
+            webSockets[houseId.Value].Add(ws);
+        }
+
+        await SendMessage(ws, get());
+        await RunReadLoop(ws, houseId, set, get);
+        if (houseId.HasValue)
+            webSockets[houseId.Value].Remove(ws);
     }
 
-    private async Task RunReadLoop(WebSocket ws, int houseId, TLogic logic, string userName)
+    private async Task RunReadLoop(
+        WebSocket ws,
+        int? houseId,
+        Action<TReceive> set,
+        Func<TSend> get
+    )
     {
         WebSocketReceiveResult receiveResult;
         do
@@ -112,9 +102,9 @@ public class WebsocketController<TLogic, TReceive, TSend>
                 var messageObject = JsonSerializer.Deserialize<TReceive>(message, jsonSerializerOptions);
                 if (messageObject != null)
                 {
-                    var result = handler(logic, userName, messageObject);
-                    if (result != null)
-                        await BroadcastMessage(result, houseId);
+                    set(messageObject);
+                    if (houseId.HasValue)
+                        await BroadcastMessage(get(), houseId.Value);
                 }
             }
             catch (JsonException)
@@ -147,5 +137,17 @@ public class WebsocketController<TLogic, TReceive, TSend>
                 )
             );
         }
+    }
+
+    private async Task SendMessage(WebSocket ws, TSend message)
+    {
+        var messageString = JsonSerializer.Serialize(message, jsonSerializerOptions);
+        var messageBytes = Encoding.UTF8.GetBytes(messageString);
+        await ws.SendAsync(
+            new ArraySegment<byte>(messageBytes),
+            WebSocketMessageType.Text,
+            true,
+            CancellationToken.None
+        );
     }
 }

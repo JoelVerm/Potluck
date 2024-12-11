@@ -1,42 +1,99 @@
 ﻿using Logic;
 using Potluck.Helpers;
+using Potluck.ViewModels;
+using static Potluck.Helpers.RestHelpers;
 
 namespace Potluck.API;
 
 public static class Users
 {
-    public static void SetupUsersRoutes(this IEndpointRouteBuilder app)
+    public static T SetupUsersRoutes<T>(this T app)
+        where T : IEndpointRouteBuilder, IEndpointConventionBuilder
     {
-        // Many
+        app.MapGet(
+                "/users/{name}/house",
+                (string name, UserLogic user) =>
+                {
+                    var u = user.GetUser(name);
+                    if (u == null)
+                        return Results.NotFound();
+                    if (GetUserName() != name)
+                        return Results.Forbid();
+                    return JSON(new HouseResponse(u.user.House?.Name ?? ""));
+                }
+            ).Produces<HouseResponse>()
+            .Produces(403)
+            .Produces(404);
 
-        app.UseGet("users", "homeStatus", (House house) => house.HomeStatusList());
+        app.MapGet(
+                "/users/{name}/balance",
+                (string name, UserLogic user) =>
+                {
+                    var u = user.GetUser(name);
+                    if (u == null)
+                        return Results.NotFound();
+                    if (GetUserName() != name)
+                        return Results.Forbid();
+                    return JSON(new TotalBalance(u.user.Balance()));
+                }
+            ).Produces<TotalBalance>()
+            .Produces(403)
+            .Produces(404);
 
-        // One
+        var eatingTotalPeopleWS = new WebsocketController<int, int>(app, "/users/{name}/eatingTotalPeopleWS");
+        app.MapGet(
+            eatingTotalPeopleWS.Path,
+            async (string name, HttpContext context, UserLogic user) =>
+            {
+                var u = user.GetUser(name);
+                if (u == null)
+                    return Results.NotFound();
+                if (GetUserName() != name)
+                    return Results.Forbid();
+                var houseId = u.HouseId();
+                return await eatingTotalPeopleWS.Handle(context, houseId, total =>
+                        u.SetEatingTotalPeople(total),
+                    () => u.EatingTotalPeople()
+                );
+            }
+        );
 
-        app.UseGet(
-            "users", "current/balance",
-            (Transactions transactions) => new TotalBalanceResponse(transactions.Balance())
+        var homeStatusWS = new WebsocketController<string, string>(app, "/users/{name}/homeStatusWS");
+        app.MapGet(
+            homeStatusWS.Path,
+            async (string name, HttpContext context, UserLogic user) =>
+            {
+                var u = user.GetUser(name);
+                if (u == null)
+                    return Results.NotFound();
+                if (GetUserName() != name)
+                    return Results.Forbid();
+                var houseId = u.HouseId();
+                return await homeStatusWS.Handle(context, houseId, status =>
+                        u.SetHomeStatus(status),
+                    () => u.HomeStatus()
+                );
+            }
         );
-        app.UseGetAndWebsocket(
-            "users", "current/eatingTotalPeople",
-            user => user.EatingTotalPeople(),
-            (user, total) => user.SetEatingTotalPeople(total)
-        );
-        app.UseGetAndWebsocket(
-            "users", "current/homeStatus",
-            user => user.HomeStatus(),
-            (user, status) => user.SetHomeStatus(status)
-        );
-        app.UseGetAndWebsocket(
-            "users", "current/diet",
-            user => user.Diet(),
-            (user, preference) => user.SetDiet(preference)
-        );
-    }
 
-    private class TotalBalanceResponse((int cookingPoints, decimal euros) balance)
-    {
-        public int CookingPoints { get; set; } = balance.cookingPoints;
-        public decimal Euros { get; set; } = balance.euros;
+        var dietWS = new WebsocketController<string, string>(app, "/users/{name}/dietWS");
+        app.MapGet(
+            dietWS.Path,
+            async (string name, HttpContext context, UserLogic user) =>
+            {
+                var u = user.GetUser(name);
+                if (u == null)
+                    return Results.NotFound();
+                if (GetUserName() != name)
+                    return Results.Forbid();
+                var houseId = u.HouseId();
+                return await dietWS.Handle(context, houseId, diet =>
+                        u.SetDiet(diet),
+                    () => u.Diet()
+                );
+            }
+        );
+
+        return app;
     }
 }
