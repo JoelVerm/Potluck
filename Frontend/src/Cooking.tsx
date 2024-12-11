@@ -15,7 +15,7 @@ interface EatingPerson {
     diet: string
 }
 
-const Cooking: Component<TabProps> = props => {
+const Cooking: Component<TabProps & { eatingTotal: number }> = props => {
     const [cookingUser, setCooking] = createWS('/houses/{name}/cookingUserWS', () => ({
         name: props.houseName
     }))
@@ -50,6 +50,8 @@ const Cooking: Component<TabProps> = props => {
         EatingPerson[]
     >([])
     createEffect(async () => {
+        // Refetch when setting own eating total
+        (() => props.eatingTotal)()
         if (props.houseName.length <= 0) return
         const res = await client.GET('/houses/{name}/users/eating', {
             params: {
@@ -117,7 +119,7 @@ const Cooking: Component<TabProps> = props => {
                     />
                 </TextField>
             </Show>
-            <h1>
+            <h1 data-testid="eating-total-display">
                 {eatingList().reduce((t, p) => t + p.count, 0) ?? 0} people
                 eating today
             </h1>

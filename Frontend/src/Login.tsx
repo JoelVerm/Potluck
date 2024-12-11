@@ -15,6 +15,14 @@ const isValidPassword = (password: string) =>
     password.match(/[A-Z]/) &&
     !password.match(/[^a-zA-Z]/)
 
+const setUsernameCookie = (name: string) => {
+    document.cookie = `username=${name}`
+}
+
+export const getUsernameCookie = () => {
+    return document.cookie.split('; ').find(row => row.startsWith('username='))?.split('=')[1]
+}
+
 const Login: Component<TabProps & { setUsername: (name: string) => void }> = props => {
     const [email, setEmail] = createSignal('')
     const [password, setPassword] = createSignal('')
@@ -90,7 +98,9 @@ const Login: Component<TabProps & { setUsername: (name: string) => void }> = pro
                             }
                         }).then(res => {
                             setHasError(res.error != undefined)
-                            if (res.error == undefined) props.setUsername(email())
+                            if (res.error != undefined) return
+                            setUsernameCookie(email())
+                            props.setUsername(email())
                         })
                     }}
                 >
@@ -168,6 +178,7 @@ const Login: Component<TabProps & { setUsername: (name: string) => void }> = pro
                 </FlexRow>
                 <Button
                     class="w-full"
+                    data-testid="register-button"
                     onClick={() => {
                         if (
                             !isValidEmail(email()) ||
@@ -202,7 +213,9 @@ const Login: Component<TabProps & { setUsername: (name: string) => void }> = pro
                             )
                             .then(res => {
                                 setHasError(res.error != undefined)
-                                if (res.error == undefined) props.setUsername(email())
+                                if (res.error != undefined) return
+                                setUsernameCookie(email())
+                                props.setUsername(email())
                             })
                     }}
                 >

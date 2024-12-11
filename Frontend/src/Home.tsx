@@ -9,7 +9,7 @@ import {TabProps} from "~/App";
 
 const homeStatusOptions = ['At home', 'Away for a bit', 'Out of town'] as const
 
-const Home: Component<TabProps> = props => {
+const Home: Component<TabProps & { setEatingTotal: (val: number) => void }> = props => {
     const [totalBalance] = createResource(() => client.GET('/users/{name}/balance', {
         params: {
             path: {
@@ -17,14 +17,20 @@ const Home: Component<TabProps> = props => {
             }
         }
     }).then(res => res.data))
-    const [eatingTotal, setEatingTotal] = createWS('/users/{name}/eatingTotalPeopleWS', () => ({
+    const [eatingTotal, _setEatingTotal] = createWS('/users/{name}/eatingTotalPeopleWS', () => ({
         name: props.username
     }))
+    const setEatingTotal = (val: number) => {
+        _setEatingTotal(val)
+        props.setEatingTotal(val)
+    }
     const [homeStatus, setHomeStatus] = createWS('/users/{name}/homeStatusWS', () => ({
         name: props.username
     }))
     const [homeStatusList, setHomeStatusList] = createSignal<{ [key: string]: string }>({})
     createEffect(async () => {
+        // Refetch when setting own status
+        homeStatus()
         if (props.houseName.length <= 0) return
         const res = await client.GET('/houses/{name}/users/homeStatus', {
             params: {
@@ -47,7 +53,7 @@ const Home: Component<TabProps> = props => {
             })
         })
     })
-    
+
     return (
         <Flex
             flexDirection="col"
@@ -60,6 +66,7 @@ const Home: Component<TabProps> = props => {
                 {totalBalance()?.euros ?? 0}
             </h1>
             <NumberRow
+                data-testid="eating-total"
                 text="Eating with"
                 value={
                     eatingTotal() ?? 0

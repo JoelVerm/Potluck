@@ -1,7 +1,7 @@
-import {Component, mergeProps} from 'solid-js'
+import {Component, type ComponentProps, mergeProps} from 'solid-js'
 import {Flex, FlexProps} from '~/components/ui/flex'
 
-const FlexRow: Component<FlexProps> = props => {
+const FlexRow: Component<ComponentProps<'div'> & FlexProps> = props => {
     const finalProps = mergeProps(
         {
             flexDirection: 'row',

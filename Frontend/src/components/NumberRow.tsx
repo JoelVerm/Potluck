@@ -1,4 +1,4 @@
-import type {Component} from 'solid-js'
+import {Component, type ComponentProps} from 'solid-js'
 
 import {
     NumberField,
@@ -9,7 +9,7 @@ import {
 
 import FlexRow from '~/components/FlexRow'
 
-const NumberRow: Component<{
+const NumberRow: Component<ComponentProps<'div'> & {
     text: string
     value: number
     setValue: (value: number) => void
@@ -19,7 +19,7 @@ const NumberRow: Component<{
     enabled?: boolean
 }> = props => {
     return (
-        <FlexRow>
+        <FlexRow {...props}>
             <span>{props.text}</span>
             <NumberField
                 class="w-36"

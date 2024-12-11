@@ -68,17 +68,20 @@ public class WebsocketController<TReceive, TSend>
         Func<TSend> get
     )
     {
-        if (houseId.HasValue)
+        var hasId = houseId.HasValue;
+        var id = houseId ?? -1;
+
+        if (hasId)
         {
-            if (!webSockets.ContainsKey(houseId.Value))
-                webSockets.Add(houseId.Value, []);
-            webSockets[houseId.Value].Add(ws);
+            if (!webSockets.ContainsKey(id))
+                webSockets.Add(id, []);
+            webSockets[id].Add(ws);
         }
 
         await SendMessage(ws, get());
         await RunReadLoop(ws, houseId, set, get);
-        if (houseId.HasValue)
-            webSockets[houseId.Value].Remove(ws);
+        if (hasId)
+            webSockets[id].Remove(ws);
     }
 
     private async Task RunReadLoop(

@@ -26,6 +26,10 @@ jobs:
         run: dotnet test --no-build --verbosity normal
   quality_test:
     uses: ./.github/workflows/qodana_code_quality.yml
+    permissions:
+      checks: write
+      contents: write
+      pull-requests: write
   end_to_end_test:
     uses: ./.github/workflows/end_to_end.yml
   deploy:

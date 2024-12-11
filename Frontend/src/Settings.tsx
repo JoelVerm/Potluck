@@ -61,12 +61,14 @@ const Settings: Component<TabProps & { setHouseName: (name: string) => void }> =
                             type="text"
                             placeholder="House name"
                             value={newHouseName()}
+                            data-testid="new-house-name"
                             onInput={e =>
                                 setNewHouseName(e.currentTarget.value)
                             }
                         />
                     </TextField>
                     <Button
+                        data-testid="new-house"
                         onClick={() => {
                             if ((newHouseName()?.length ?? 0) > 0) {
                                 client.POST(

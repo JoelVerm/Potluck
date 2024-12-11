@@ -3,7 +3,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from '~/components/ui/tabs'
 
 import Cooking from '~/Cooking'
 import Home from '~/Home'
-import Login from '~/Login'
+import Login, {getUsernameCookie} from '~/Login'
 import Settings from '~/Settings'
 import Shopping from '~/Shopping'
 import {client} from "api";
@@ -14,7 +14,7 @@ export type TabProps = {
 }
 
 const App: Component = () => {
-    const [username, setUsername] = createSignal('')
+    const [username, setUsername] = createSignal(getUsernameCookie() ?? '')
     const [houseName, setHouseName] = createSignal('')
     createEffect(() => {
         const user = username()
@@ -28,9 +28,10 @@ const App: Component = () => {
             setHouseName(houseName.data?.name ?? '')
         })
     })
+    const [eatingTotal, setEatingTotal] = createSignal(0)
     const createTabs = () => ({
-        Home: <Home username={username()} houseName={houseName()}/>,
-        Cooking: <Cooking username={username()} houseName={houseName()}/>,
+        Home: <Home username={username()} houseName={houseName()} setEatingTotal={setEatingTotal}/>,
+        Cooking: <Cooking username={username()} houseName={houseName()} eatingTotal={eatingTotal()}/>,
         Shopping: <Shopping username={username()} houseName={houseName()}/>,
         Settings: <Settings username={username()} houseName={houseName()} setHouseName={setHouseName}/>
     })
