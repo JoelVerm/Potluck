@@ -24,23 +24,15 @@ jobs:
         run: dotnet build --no-restore
       - name: Test
         run: dotnet test --no-build --verbosity normal
-  #    quality_test:
-  #        uses: ./.github/workflows/qodana_code_quality.yml
-  #        permissions:
-  #            checks: write
-  #            contents: write
-  #            pull-requests: write
   end_to_end_test:
     needs:
       - unit_test
-    #            - quality_test
     uses: ./.github/workflows/end_to_end.yml
   deploy:
     if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     needs:
       - unit_test
-      #            - quality_test
       - end_to_end_test
     steps:
       - name: Check out the repo
