@@ -35,6 +35,7 @@ public class HouseLogic : LogicBase
             return CreateHouseStatus.UserNotFound;
         house = new House { Name = name };
         house.Users.Add(user);
+        user.House = house;
         db.AddHouse(house);
         db.SaveChanges();
         return CreateHouseStatus.Success;
@@ -42,8 +43,8 @@ public class HouseLogic : LogicBase
 
     public class LogicHouse(House house, IPotluckDb db)
     {
-        public IPotluckDb db = db;
-        public House house = house;
+        public readonly IPotluckDb db = db;
+        public readonly House house = house;
 
         public bool IsAllowed(string username)
         {
@@ -169,9 +170,9 @@ public class HouseLogic : LogicBase
 
     public class EatingPerson(string name, int count, int cookingPoints, string diet)
     {
-        public string Name { get; set; } = name;
-        public int Count { get; set; } = count;
-        public int CookingPoints { get; set; } = cookingPoints;
-        public string Diet { get; set; } = diet;
+        public string Name { get; } = name;
+        public int Count { get; } = count;
+        public int CookingPoints { get; } = cookingPoints;
+        public string Diet { get; } = diet;
     }
 }

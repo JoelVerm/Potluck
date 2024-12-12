@@ -13,7 +13,7 @@ public static class TransactionsLogic
                 t.EuroCents.ToMoney(),
                 t.CookingPoints
             ))
-            .ToArray() ?? [];
+            .ToArray();
     }
 
     public static void AddTransaction(this HouseLogic.LogicHouse house, Transaction transaction)
@@ -66,15 +66,11 @@ public static class TransactionsLogic
         }
 
         var fromCount = transaction.Users.Count(u => u == userLogic);
-        if (fromCount > 0)
-        {
-            var count = transaction.Users.Count;
-            if (count > 0)
-            {
-                euroCents -= transaction.EuroCents / count * fromCount;
-                cookingPoints -= transaction.CookingPoints / count * fromCount;
-            }
-        }
+        if (fromCount <= 0) return (euroCents, cookingPoints);
+        var count = transaction.Users.Count;
+        if (count <= 0) return (euroCents, cookingPoints);
+        euroCents -= transaction.EuroCents / count * fromCount;
+        cookingPoints -= transaction.CookingPoints / count * fromCount;
 
         return (euroCents, cookingPoints);
     }
@@ -87,10 +83,10 @@ public static class TransactionsLogic
         int points
     )
     {
-        public string To { get; set; } = to;
-        public string[] From { get; set; } = from;
-        public string Description { get; set; } = description;
-        public decimal Money { get; set; } = money;
-        public int Points { get; set; } = points;
+        public string To { get; } = to;
+        public string[] From { get; } = from;
+        public string Description { get; } = description;
+        public decimal Money { get; } = money;
+        public int Points { get; } = points;
     }
 }

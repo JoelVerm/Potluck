@@ -93,6 +93,7 @@ const Settings: Component<TabProps & { setHouseName: (name: string) => void }> =
                         <TextFieldInput
                             type="text"
                             placeholder="House name"
+                            data-testid="edit-house-name"
                             value={houseNameWS()}
                             onInput={e =>
                                 setHouseNameWS(e.currentTarget.value)

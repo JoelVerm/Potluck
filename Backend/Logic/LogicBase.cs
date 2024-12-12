@@ -6,7 +6,7 @@ public abstract class LogicBase(IPotluckDb db)
 {
     protected readonly IPotluckDb db = db;
 
-    public LogicBase(IServiceProvider sp) : this(sp.GetRequiredService<IPotluckDb>())
+    protected LogicBase(IServiceProvider sp) : this(sp.GetRequiredService<IPotluckDb>())
     {
     }
 }

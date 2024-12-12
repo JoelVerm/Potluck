@@ -78,10 +78,16 @@ public class WebsocketController<TReceive, TSend>
             webSockets[id].Add(ws);
         }
 
-        await SendMessage(ws, get());
-        await RunReadLoop(ws, houseId, set, get);
-        if (hasId)
-            webSockets[id].Remove(ws);
+        try
+        {
+            await SendMessage(ws, get());
+            await RunReadLoop(ws, houseId, set, get);
+        }
+        finally
+        {
+            if (hasId)
+                webSockets[id].Remove(ws);
+        }
     }
 
     private async Task RunReadLoop(
@@ -123,7 +129,7 @@ public class WebsocketController<TReceive, TSend>
         );
     }
 
-    public async Task BroadcastMessage(TSend message, int houseId)
+    private async Task BroadcastMessage(TSend message, int houseId)
     {
         if (webSockets.TryGetValue(houseId, out var websockets))
         {
@@ -142,7 +148,7 @@ public class WebsocketController<TReceive, TSend>
         }
     }
 
-    private async Task SendMessage(WebSocket ws, TSend message)
+    private static async Task SendMessage(WebSocket ws, TSend message)
     {
         var messageString = JsonSerializer.Serialize(message, jsonSerializerOptions);
         var messageBytes = Encoding.UTF8.GetBytes(messageString);

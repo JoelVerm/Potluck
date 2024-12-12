@@ -122,9 +122,9 @@ public class TestTransactionsLogic
         var (cookingPoints, euros) = user.Balance();
 
         // Assert
-        var expectedEuroCents = 12.34m - 12.34m / 2 + 8.50m + -4.56m / 4 * 2;
+        const decimal expectedEuroCents = 12.34m - 12.34m / 2 + 8.50m + -4.56m / 4 * 2;
         Assert.AreEqual(expectedEuroCents, euros);
-        var expectedCookingPoints = 5 - 5 / 2 + 12 + -4 / 4 * 2;
+        const int expectedCookingPoints = 5 - 5 / 2 + 12 + -4 / 4 * 2;
         Assert.AreEqual(expectedCookingPoints, cookingPoints);
     }
 
@@ -136,7 +136,7 @@ public class TestTransactionsLogic
         var bob = new User { UserName = "Bob" };
         var charlie = new User { UserName = "Charlie" };
         user.House = new House { Users = [user, bob, charlie], Transactions = [] };
-        var db = new MockDb();
+        var db = new MockDb { User = user, House = user.House };
         var transactions = new HouseLogic(db);
 
         // Act
@@ -165,7 +165,7 @@ public class TestTransactionsLogic
         var bob = new User { UserName = "Bob" };
         var charlie = new User { UserName = "Charlie" };
         user.House = new House { Users = [user, bob, charlie], Transactions = [] };
-        var db = new MockDb();
+        var db = new MockDb { User = user, House = user.House };
         var transactions = new HouseLogic(db);
 
         // Act

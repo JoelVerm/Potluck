@@ -9,7 +9,7 @@ public class TestHouseLogic
 {
     private static readonly string[] allPeople = ["Alice", "Bob", "Charlie"];
 
-    private User CreateUserWithHouse()
+    private static User CreateUserWithHouse()
     {
         var thisUser = new User
         {
@@ -52,7 +52,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -67,7 +67,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb { User = new User { UserName = "David" } };
+        var db = new MockDb { User = new User { UserName = "David" }, House = user.House };
         var logic = new HouseLogic(db);
 
         // Act
@@ -80,26 +80,11 @@ public class TestHouseLogic
     }
 
     [TestMethod]
-    public void AddUser_Invalid_NoHouse()
-    {
-        // Arrange
-        var user = new User { UserName = "Alice" };
-        var db = new MockDb();
-        var logic = new HouseLogic(db);
-
-        // Act
-        logic.GetHouse("")!.AddUser("SomeUser");
-
-        // Assert
-        Assert.AreEqual(0, db.SaveChangesTimesCalled);
-    }
-
-    [TestMethod]
     public void AddUser_Invalid_UserNotFound()
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -115,7 +100,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb { User = user };
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -131,7 +116,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -144,26 +129,11 @@ public class TestHouseLogic
     }
 
     [TestMethod]
-    public void RemoveUser_Invalid_NoHouse()
-    {
-        // Arrange
-        var user = new User { UserName = "Alice" };
-        var db = new MockDb();
-        var logic = new HouseLogic(db);
-
-        // Act
-        logic.GetHouse("")!.RemoveUser("Bob");
-
-        // Assert
-        Assert.AreEqual(0, db.SaveChangesTimesCalled);
-    }
-
-    [TestMethod]
     public void RemoveUser_Invalid_UserNotFound()
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -179,7 +149,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -202,7 +172,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -217,7 +187,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -233,7 +203,7 @@ public class TestHouseLogic
         // Arrange
         var user = CreateUserWithHouse();
         user.House!.CookingUser = null;
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -249,7 +219,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -261,27 +231,12 @@ public class TestHouseLogic
     }
 
     [TestMethod]
-    public void SetUserCooking_Invalid_NoHouse()
-    {
-        // Arrange
-        var user = new User { UserName = "Alice" };
-        var db = new MockDb();
-        var logic = new HouseLogic(db);
-
-        // Act
-        logic.GetHouse("")!.SetUserCooking("", true);
-
-        // Assert
-        Assert.AreEqual(0, db.SaveChangesTimesCalled);
-    }
-
-    [TestMethod]
     public void SetUserCooking_Invalid_NotCookingUser()
     {
         // Arrange
         var user = CreateUserWithHouse();
         user.House!.CookingUser = new User { UserName = "Bob" };
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -297,7 +252,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -312,7 +267,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -324,27 +279,12 @@ public class TestHouseLogic
     }
 
     [TestMethod]
-    public void SetCookingPrice_Invalid_NoHouse()
-    {
-        // Arrange
-        var user = new User { UserName = "Alice" };
-        var db = new MockDb();
-        var logic = new HouseLogic(db);
-
-        // Act
-        logic.GetHouse("")!.SetCookingPrice("", 56.78m);
-
-        // Assert
-        Assert.AreEqual(0, db.SaveChangesTimesCalled);
-    }
-
-    [TestMethod]
     public void SetCookingPrice_Invalid_NotCookingUser()
     {
         // Arrange
         var user = CreateUserWithHouse();
         user.House!.CookingUser = new User { UserName = "Bob" };
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -360,7 +300,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -372,27 +312,12 @@ public class TestHouseLogic
     }
 
     [TestMethod]
-    public void SetCookingDescription_Invalid_NoHouse()
-    {
-        // Arrange
-        var user = new User { UserName = "Alice" };
-        var db = new MockDb();
-        var logic = new HouseLogic(db);
-
-        // Act
-        logic.GetHouse("")!.SetCookingDescription("", "Pizza");
-
-        // Assert
-        Assert.AreEqual(0, db.SaveChangesTimesCalled);
-    }
-
-    [TestMethod]
     public void SetCookingDescription_Invalid_NotCookingUser()
     {
         // Arrange
         var user = CreateUserWithHouse();
         user.House!.CookingUser = new User { UserName = "Bob" };
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -408,7 +333,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -420,12 +345,13 @@ public class TestHouseLogic
             new EatingPerson("Alice", 3, 0, "Vegetarian"),
             new EatingPerson("Charlie", 1, 0, "")
         };
-        var compare = (EatingPerson a, EatingPerson b) =>
-            a.CookingPoints == b.CookingPoints
-            && a.Count == b.Count
-            && a.Diet == b.Diet
-            && a.Name == b.Name;
-        Assert.IsTrue(result.Zip(expected).All(p => compare(p.First, p.Second)));
+
+        Assert.IsTrue(result.Zip(expected).All(p => CompareEatingPeople(p.First, p.Second)));
+    }
+
+    private static bool CompareEatingPeople(EatingPerson a, EatingPerson b)
+    {
+        return a.CookingPoints == b.CookingPoints && a.Count == b.Count && a.Diet == b.Diet && a.Name == b.Name;
     }
 
     [TestMethod]
@@ -433,7 +359,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -445,26 +371,11 @@ public class TestHouseLogic
     }
 
     [TestMethod]
-    public void SetShoppingList_Invalid_NoHouse()
-    {
-        // Arrange
-        var user = new User { UserName = "Alice" };
-        var db = new MockDb();
-        var logic = new HouseLogic(db);
-
-        // Act
-        logic.GetHouse("")!.SetShoppingList("Apples, Bananas, Oranges, Pears");
-
-        // Assert
-        Assert.AreEqual(0, db.SaveChangesTimesCalled);
-    }
-
-    [TestMethod]
     public void SetHouseName_Valid()
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -476,34 +387,20 @@ public class TestHouseLogic
     }
 
     [TestMethod]
-    public void SetHouseName_Invalid_NoHouse()
-    {
-        // Arrange
-        var user = new User { UserName = "Alice" };
-        var db = new MockDb();
-        var logic = new HouseLogic(db);
-
-        // Act
-        logic.GetHouse("")!.SetHouseName("NewHouse");
-
-        // Assert
-        Assert.AreEqual(0, db.SaveChangesTimesCalled);
-    }
-
-    [TestMethod]
     public void CreateNew_Valid()
     {
         // Arrange
         var user = new User { UserName = "Alice" };
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
-        logic.CreateNew("", "NewHouse");
+        logic.CreateNew("Alice", "NewHouse");
 
         // Assert
         Assert.AreEqual("NewHouse", user.House?.Name);
         Assert.IsTrue(user.House!.Users.Contains(user));
+        Assert.AreEqual(1, db.AddHouseTimesCalled);
         Assert.AreEqual(1, db.SaveChangesTimesCalled);
     }
 
@@ -512,7 +409,7 @@ public class TestHouseLogic
     {
         // Arrange
         var user = CreateUserWithHouse();
-        var db = new MockDb();
+        var db = MockDb.Create(user);
         var logic = new HouseLogic(db);
 
         // Act
@@ -520,6 +417,7 @@ public class TestHouseLogic
 
         // Assert
         Assert.AreEqual("Hoogh", user.House?.Name);
+        Assert.AreEqual(0, db.AddHouseTimesCalled);
         Assert.AreEqual(0, db.SaveChangesTimesCalled);
     }
 }

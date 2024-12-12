@@ -28,8 +28,7 @@ public class UserLogic : LogicBase
 
     public class LogicUser(User user, IPotluckDb db)
     {
-        public IPotluckDb db = db;
-        public User user = user;
+        public readonly User user = user;
 
         public int EatingTotalPeople()
         {

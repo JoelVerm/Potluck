@@ -13,7 +13,7 @@ public class TestUserLogic
     {
         // Arrange
         var user = new User();
-        var db = new MockDb();
+        var db = new MockDb { User = user };
         var logic = new UserLogic(db);
 
         // Act
@@ -31,7 +31,7 @@ public class TestUserLogic
     {
         // Arrange
         var user = new User();
-        var db = new MockDb();
+        var db = new MockDb { User = user };
         var logic = new UserLogic(db);
 
         // Act
@@ -47,7 +47,7 @@ public class TestUserLogic
     {
         // Arrange
         var user = new User();
-        var db = new MockDb();
+        var db = new MockDb { User = user };
         var logic = new UserLogic(db);
 
         // Act

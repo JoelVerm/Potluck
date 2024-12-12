@@ -7,10 +7,10 @@ namespace Data;
 
 public class PotluckDb : IdentityDbContext<User>, IPotluckDb
 {
-    public new DbSet<User> Users { get; set; }
-    public DbSet<House> Houses { get; set; }
-    public DbSet<Transaction> Transactions { get; set; }
-    public DbSet<TransactionUser> TransactionUsers { get; set; }
+    public new DbSet<User> Users { get; init; }
+    public DbSet<House> Houses { get; init; }
+    public DbSet<Transaction> Transactions { get; init; }
+    public DbSet<TransactionUser> TransactionUsers { get; init; }
 
     public User? GetUser(string? name)
     {

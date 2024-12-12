@@ -1,8 +1,8 @@
-﻿using Potluck.Helpers;
+﻿using System.Text.Json.Serialization;
 
 namespace Potluck.ViewModels;
 
 public class HouseNames(IEnumerable<NamedItem> names)
 {
-    public List<NamedItem> Names { get; set; } = names.ToList();
+    [JsonInclude] public List<NamedItem> Names { get; set; } = names.ToList();
 }

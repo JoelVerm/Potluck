@@ -27,7 +27,7 @@ public static class Houses
             }
         );
 
-        app.MapPost("/houses", async (HouseLogic house, [FromBody] NamedItem newHouse) =>
+        app.MapPost("/houses", (HouseLogic house, [FromBody] NamedItem newHouse) =>
             {
                 var username = GetUserName();
                 var status = house.CreateNew(username, newHouse.Name);
