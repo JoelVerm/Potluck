@@ -10,7 +10,7 @@ public class Transaction
     // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
     public string Description { get; set; } = "";
     public virtual User? ToUser { get; set; }
-    public bool IsPenalty { get; set; } = false;
+    public bool IsPenalty { get; set; }
     public virtual List<TransactionUser> TransactionUsers { get; set; } = [];
     public virtual List<User?> Users { get; set; } = [];
 }
