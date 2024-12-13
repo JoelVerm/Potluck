@@ -4,7 +4,8 @@ import * as path from "path";
 const authFile = path.join(__dirname, '../playwright/.cache/login.json');
 
 test('Be able to register', async ({page}) => {
-    const TIMEOUT = 10 * 60 * 1000;
+    const TIMEOUT = 5 * 60 * 1000;
+    test.setTimeout(TIMEOUT);
     await page.goto('http://localhost/', {timeout: TIMEOUT});
     if (await page.getByTestId('tab-Home').isVisible()) return;
     await page.getByTestId('register-tab').click({timeout: TIMEOUT});
