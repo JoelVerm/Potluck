@@ -35,7 +35,8 @@ public class PotluckDb : IdentityDbContext<User>, IPotluckDb
         if (conn != null)
             Console.WriteLine($"Using connection string: {conn}");
         optionsBuilder.UseSqlServer(
-            conn ?? "Server=(localdb)\\MSSQLLocalDB;Database=Potluck;Integrated Security=True;"
+            conn ??
+            "Server=localhost; Encrypt=false; Database=Potluck; Integrated Security=false; User=SA; Password=SuperSecretPasswordNoOneWillGuessProbably#123456789"
         );
         optionsBuilder.UseLazyLoadingProxies();
     }

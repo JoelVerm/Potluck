@@ -1,4 +1,4 @@
-import {Component, createEffect, createResource, createSignal, For, Show} from 'solid-js'
+import {Component, createResource, createSignal, For} from 'solid-js'
 
 import {Button} from '~/components/ui/button'
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '~/components/ui/dialog'
@@ -9,16 +9,10 @@ import FlexRow from '~/components/FlexRow'
 import {client, createWS} from 'api'
 import {TabProps} from "~/App";
 
-const Settings: Component<TabProps & { setHouseName: (name: string) => void }> = props => {
+const Settings: Component<TabProps> = props => {
     const [dietPreferences, setDietPreferences] =
         createWS('/users/{name}/dietWS', () => ({name: props.username}))
-    const [houseNameWS, setHouseNameWS] = createWS('/houses/{name}/nameWS', () => ({
-        name: props.houseName
-    }))
-    createEffect(() => {
-        props.setHouseName(houseNameWS()?.toString() ?? '')
-    })
-    const [houseMembers] = createResource(async () => {
+    const [houseMembers, {refetch}] = createResource(async () => {
         if (props.houseName.length <= 0) return undefined
         const res = await client.GET('/houses/{name}/users', {
             params: {
@@ -29,8 +23,6 @@ const Settings: Component<TabProps & { setHouseName: (name: string) => void }> =
         })
         return res.data
     })
-
-    const [newHouseName, setNewHouseName] = createSignal(props.houseName)
 
     return (
         <Flex
@@ -55,89 +47,45 @@ const Settings: Component<TabProps & { setHouseName: (name: string) => void }> =
                 alignItems="start"
                 class="gap-2 rounded border p-2"
             >
-                <Show when={(houseNameWS()?.length ?? 0) > 0} fallback={<>
-                    <TextField class="w-full">
-                        <TextFieldInput
-                            type="text"
-                            placeholder="House name"
-                            value={newHouseName()}
-                            data-testid="new-house-name"
-                            onInput={e =>
-                                setNewHouseName(e.currentTarget.value)
-                            }
-                        />
-                    </TextField>
-                    <Button
-                        data-testid="new-house"
-                        onClick={() => {
-                            if ((newHouseName()?.length ?? 0) > 0) {
-                                client.POST(
-                                    '/houses',
-                                    {
-                                        body: {
-                                            name: newHouseName()
-                                        }
-                                    }
-                                ).then(res => {
-                                    if (res.response.ok) {
-                                        props.setHouseName(newHouseName())
-                                    }
-                                })
-                            }
-                        }}
-                    >
-                        Create house
-                    </Button>
-                </>}>
-                    <TextField class="w-full">
-                        <TextFieldInput
-                            type="text"
-                            placeholder="House name"
-                            data-testid="edit-house-name"
-                            value={houseNameWS()}
-                            onInput={e =>
-                                setHouseNameWS(e.currentTarget.value)
-                            }
-                        />
-                    </TextField>
-                    <For each={houseMembers()?.names}>
-                        {member => (
-                            <FlexRow>
-                                <span>{member.name}</span>
-                                <Button
-                                    onClick={() => {
-                                        if (props.houseName.length <= 0) return
-                                        client.DELETE(
-                                            '/houses/{name}/users/{username}',
-                                            {
-                                                params: {
-                                                    path: {
-                                                        name: props.houseName,
-                                                        username: member.name ?? ""
-                                                    }
+                <h2 class="text-lg">House members of {props.houseName}</h2>
+                <For each={houseMembers()?.names}>
+                    {member => (
+                        <FlexRow>
+                            <span>{member.name}</span>
+                            <Button
+                                onClick={async () => {
+                                    if (props.houseName.length <= 0) return
+                                    await client.DELETE(
+                                        '/houses/{name}/users/{username}',
+                                        {
+                                            params: {
+                                                path: {
+                                                    name: props.houseName,
+                                                    username: member.name ?? ""
                                                 }
                                             }
-                                        )
-                                    }}
-                                >
-                                    Remove
-                                </Button>
-                            </FlexRow>
-                        )}
-                    </For>
-                    <AddUserDialog {...props}/>
-                </Show>
+                                        }
+                                    )
+                                    refetch()
+                                }}
+                            >
+                                Remove
+                            </Button>
+                        </FlexRow>
+                    )}
+                </For>
+                <AddUserDialog {...props} refetch={refetch}/>
             </Flex>
         </Flex>
     )
 }
 
-const AddUserDialog: Component<TabProps> = props => {
+const AddUserDialog: Component<TabProps & { refetch: () => void }> = props => {
     const [open, setOpen] = createSignal(false)
     const [userName, setUserName] = createSignal('')
 
-    const addMember = () => {
-        client.POST('/houses/{name}/users', {
+    const addMember = async () => {
+        await client.POST('/houses/{name}/users', {
             params: {
                 path: {
                     name: props.houseName
@@ -148,6 +96,7 @@ const AddUserDialog: Component<TabProps> = props => {
             }
         })
         setOpen(false)
+        props.refetch()
     }
 
     return (

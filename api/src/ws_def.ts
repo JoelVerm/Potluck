@@ -25,10 +25,6 @@ export interface components {
         "/users/{name}/dietWS_pub": string;
         /** String */
         "/users/{name}/dietWS_sub": string;
-        /** String */
-        "/houses/{name}/nameWS_pub": string;
-        /** String */
-        "/houses/{name}/nameWS_sub": string;
         /** Boolean */
         "/houses/{name}/cookingUserWS_pub": boolean;
         /** String */

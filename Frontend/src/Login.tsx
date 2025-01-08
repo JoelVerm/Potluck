@@ -5,7 +5,6 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from '~/components/ui/tabs'
 import {TextField, TextFieldErrorMessage, TextFieldInput} from '~/components/ui/text-field'
 
 import FlexRow from '~/components/FlexRow'
-import {TabProps} from "~/App";
 import {client} from "api";
 
 const isValidEmail = (email: string) => /.+@.+\..+/.test(email)
@@ -23,7 +22,7 @@ export const getUsernameCookie = () => {
     return document.cookie.split('; ').find(row => row.startsWith('username='))?.split('=')[1]
 }
 
-const Login: Component<TabProps & { setUsername: (name: string) => void }> = props => {
+const Login: Component<{ setUsername: (name: string) => void }> = props => {
     const [email, setEmail] = createSignal('')
     const [password, setPassword] = createSignal('')
     const [password2, setPassword2] = createSignal('')

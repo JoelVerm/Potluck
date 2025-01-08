@@ -11,22 +11,6 @@ public static class Houses
     public static T SetupHousesRoutes<T>(this T app)
         where T : IEndpointRouteBuilder, IEndpointConventionBuilder
     {
-        var houseNameWS = new WebsocketController<string, string>(app, "/houses/{name}/nameWS");
-        app.MapGet(
-            houseNameWS.Path,
-            async (string name, HttpContext context, HouseLogic house) =>
-            {
-                var h = house.GetHouse(name);
-                if (h == null)
-                    return Results.NotFound();
-                if (!h.IsAllowed(GetUserName())) return Results.Forbid();
-                return await houseNameWS.Handle(context, h.GetId(), newName =>
-                        h.SetHouseName(newName),
-                    () => h.HouseName()
-                );
-            }
-        );
-
         app.MapPost("/houses", (HouseLogic house, [FromBody] NamedItem newHouse) =>
             {
                 var username = GetUserName();

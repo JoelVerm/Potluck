@@ -94,8 +94,6 @@ Er zijn een aantal ideeën bedacht en gepitcht. Hierop is de volgende feedback g
 
 Studenten willen vooral gemak in het gebruik van een eetlijst app. Hierdoor moeten alle taken zo eenvoudig en snel mogelijk uitgevoerd kunnen worden. Om hiervoor te zorgen is het handig om de activity flows zo kort mogelijk te houden.
 
-De task analysis laat zien dat veel van de user requirements al frequent gebruikt worden. De overige requirements zullen waarschijnlijk ook populair zijn.
+Bij het vergelijken van de user requirements en de task analysis valt op dat veel van de requirements overeenkomen met de huidige situatie. Nieuw zijn dieetwensen en informatie over waar huisgenoten zijn.
 
 De pitch levert een gemengd resultaat op. Te ingewikkelde functies zoals consumpties turven vallen niet in de smaak. Eenvoudigere opties, bijvoorbeeld een boodschappenlijst, zijn populairder. Daar tussenin staan de mogelijkheden met een vaste tablet. Deze zijn wel populair, maar het aanbrengen van een tablet is wel veel meer werk.
-
-De requirements waar geen onzekerheid over bestaat zullen dus zeker weten nodig zijn. Om te beslissen of de overige functies geïmplementeerd moeten worden is meer onderzoek nodig, waarbij fysieke tests worden gedaan en eindgebruikers de opties zelf kunnen uitproberen en beoordelen.
