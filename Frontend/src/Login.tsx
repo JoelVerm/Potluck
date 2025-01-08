@@ -34,7 +34,8 @@ const Login: Component<{ setUsername: (name: string) => void }> = props => {
             class="max-w-md h-screen mx-auto p-2 flex flex-col justify-center"
         >
             <TabsList class="grid w-full grid-cols-2">
-                <TabsTrigger value="login" onClick={() => setHasError(false)}>Login</TabsTrigger>
+                <TabsTrigger value="login" data-testid="login-tab"
+                             onClick={() => setHasError(false)}>Login</TabsTrigger>
                 <TabsTrigger value="register" data-testid="register-tab"
                              onClick={() => setHasError(false)}>Register</TabsTrigger>
             </TabsList>
@@ -53,6 +54,7 @@ const Login: Component<{ setUsername: (name: string) => void }> = props => {
                         placeholder="Email"
                         value={email()}
                         onInput={e => setEmail(e.currentTarget.value)}
+                        data-testid="login-email"
                     />
                     <TextFieldErrorMessage>
                         This must be a valid email
@@ -72,6 +74,7 @@ const Login: Component<{ setUsername: (name: string) => void }> = props => {
                         placeholder="Password"
                         value={password()}
                         onInput={e => setPassword(e.currentTarget.value)}
+                        data-testid="login-password"
                     />
                     <TextFieldErrorMessage>
                         This password is invalid
@@ -79,6 +82,7 @@ const Login: Component<{ setUsername: (name: string) => void }> = props => {
                 </TextField>
                 <Button
                     class="w-full"
+                    data-testid="login-button"
                     onClick={() => {
                         if (
                             !isValidEmail(email()) ||
@@ -105,7 +109,7 @@ const Login: Component<{ setUsername: (name: string) => void }> = props => {
                 >
                     Login
                 </Button>
-                <p class="text-red-500">{hasError() ? 'Could not login' : ''}</p>
+                <p class="text-red-500" data-testid="login-error">{hasError() ? 'Could not login' : ''}</p>
             </TabsContent>
             <TabsContent value="register" class="flex flex-col gap-2">
                 <TextField
@@ -194,33 +198,35 @@ const Login: Component<{ setUsername: (name: string) => void }> = props => {
                                 }
                             }
                         )
-                            .then(() =>
-                                client.POST(
-                                    '/login',
-                                    {
-                                        params: {
-                                            query: {
-                                                useCookies: true
-                                            }
-                                        },
-                                        body: {
-                                            email: email(),
-                                            password: password()
-                                        }
-                                    }
-                                )
-                            )
                             .then(res => {
-                                setHasError(res.error != undefined)
-                                if (res.error != undefined) return
-                                setUsernameCookie(email())
-                                props.setUsername(email())
-                            })
+                                    setHasError(res.error != undefined)
+                                    if (res.error != undefined) return
+                                    client.POST(
+                                        '/login',
+                                        {
+                                            params: {
+                                                query: {
+                                                    useCookies: true
+                                                }
+                                            },
+                                            body: {
+                                                email: email(),
+                                                password: password()
+                                            }
+                                        }
+                                    ).then(res => {
+                                        setHasError(res.error != undefined)
+                                        if (res.error != undefined) return
+                                        setUsernameCookie(email())
+                                        props.setUsername(email())
+                                    })
+                                }
+                            )
                     }}
                 >
                     Register
                 </Button>
-                <p class="text-red-500">{hasError() ? 'Could not register' : ''}</p>
+                <p class="text-red-500" data-testid="register-error">{hasError() ? 'Could not register' : ''}</p>
             </TabsContent>
         </Tabs>
     )

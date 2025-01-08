@@ -36,51 +36,54 @@ export default defineConfig({
     projects: [
         {
             name: 'setup',
-            testMatch: /login.spec.ts/,
+            testMatch: /register.spec.ts/,
         },
         {
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
-                storageState: 'playwright/.cache/login.json',
+                storageState: 'playwright/.cache/register.json',
             },
+            testIgnore: /register.spec.ts/,
             dependencies: ['setup'],
         },
         {
             name: 'firefox',
             use: {
                 ...devices['Desktop Firefox'],
-                storageState: 'playwright/.cache/login.json',
+                storageState: 'playwright/.cache/register.json',
             },
+            testIgnore: /register.spec.ts/,
             dependencies: ['setup'],
         },
-        {
-            name: 'webkit',
-            use: {
-                ...devices['Desktop Safari'],
-                storageState: 'playwright/.cache/login.json',
-            },
-            dependencies: ['setup'],
-        },
+        // {
+        //     name: 'webkit',
+        //     use: {
+        //         ...devices['Desktop Safari'],
+        //         storageState: 'playwright/.cache/register.json',
+        //     },
+        //     testIgnore: /register.spec.ts/,
+        //     dependencies: ['setup'],
+        // },
 
         /* Test against mobile viewports. */
+        {
+            name: 'Mobile Chrome',
+            use: {
+                ...devices['Pixel 5'],
+                storageState: 'playwright/.cache/register.json',
+            },
+            testIgnore: /register.spec.ts/,
+            dependencies: ['setup'],
+        },
         // {
-        //   name: 'Mobile Chrome',
-        //   use: { ...devices['Pixel 5'] },
-        // },
-        // {
-        //   name: 'Mobile Safari',
-        //   use: { ...devices['iPhone 12'] },
-        // },
-
-        /* Test against branded browsers. */
-        // {
-        //   name: 'Microsoft Edge',
-        //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-        // },
-        // {
-        //   name: 'Google Chrome',
-        //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+        //     name: 'Mobile Safari',
+        //     use: {
+        //         ...devices['iPhone 12'],
+        //         storageState: 'playwright/.cache/register.json',
+        //     },
+        //     testIgnore: /register.spec.ts/,
+        //     dependencies: ['setup'],
         // },
     ],
 
