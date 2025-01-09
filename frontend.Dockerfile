@@ -12,6 +12,6 @@ WORKDIR /frontend
 RUN pnpm i
 RUN pnpm build
 
-FROM --platform=linux/arm64 lipanski/docker-static-website:latest
+FROM lipanski/docker-static-website:latest
 
 COPY --from=build /frontend/dist .
