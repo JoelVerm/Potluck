@@ -23,6 +23,9 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
       - uses: ahmadnassri/action-workflow-run-wait@v1
+        with:
+          timeout: 1800000 # 30 minutes
+          delay: 60000 # 1 minute
       - name: Log in to Docker Hub
         uses: docker/login-action@v3.3.0
         with:
@@ -46,6 +49,9 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
       - uses: ahmadnassri/action-workflow-run-wait@v1
+        with:
+          timeout: 1800000 # 30 minutes
+          delay: 60000 # 1 minute
       - name: Log in to Docker Hub
         uses: docker/login-action@v3.3.0
         with:
