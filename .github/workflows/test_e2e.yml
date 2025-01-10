@@ -37,4 +37,4 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: ./e2e-tests
-        run: pnpm exec playwright test --browser all --reporter github
+        run: pnpm exec playwright test
