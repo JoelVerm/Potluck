@@ -1,7 +1,12 @@
 name: End-to-end
 
 on:
-  workflow_call:
+  workflow_run:
+    workflows: [ "Unit Test" ]
+    types:
+      - completed
+    branches:
+      - main
 
 jobs:
   end_to_end:
@@ -10,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - uses: ahmadnassri/action-workflow-run-wait@v1
 
       - name: Install pnpm
         working-directory: ./e2e-tests
@@ -30,4 +37,4 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: ./e2e-tests
-        run: pnpm exec playwright test
+        run: pnpm exec playwright test --browser all --reporter github
