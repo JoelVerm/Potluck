@@ -11,11 +11,6 @@ on:
       - completed
     branches:
       - main
-  push:
-    branches:
-      - main
-
-# Needs eslint, qodana, e2e, unit
 
 jobs:
   deploy_frontend:
