@@ -12,8 +12,12 @@ on:
     branches:
       - main
 
+permissions:
+  actions: write
+
 jobs:
   deploy_frontend:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -36,6 +40,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           file: ./frontend.Dockerfile
   deploy_backend:
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
