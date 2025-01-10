@@ -23,8 +23,6 @@ jobs:
         uses: hoverkraft-tech/compose-action@v2.0.1
         with:
           compose-file: "./docker-compose.yaml"
-        env:
-          TARGETARCH: "amd64"
       - name: Install pnpm
         working-directory: ./e2e-tests
         run: npm install -g pnpm
