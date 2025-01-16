@@ -2,7 +2,7 @@
 
 ## Samenvatting
 
-| Naam                                           | Samenvatting                             | Bij mij? | Fixen? |
+| Naam                                           | Samenvatting                             | Bij mij | Fixen |
 |------------------------------------------------|------------------------------------------|----------|--------|
 | A01 Broken Access Control                      | Slechte controle op account privilege    | Nee      |        |  
 | A02 Cryptographic Failures                     | Encryptiefouten                          | Nee      |        |  
@@ -13,7 +13,7 @@
 | A07 Identification and Authentication Failures | Login beveiligingsfouten                 | Deels    | Deels  |  
 | A08 Software and Data Integrity Failures       | Vertrouwen van externe bronnen           | Nee      |        |  
 | A09 Security Logging and Monitoring Failures   | Geen of slechte logging                  | Ja       | Deels  |  
-| A10 Server Side Request Forgery (SSRF)         | De server onveilige requests laten maken | Nee      |        |
+| A10 Server Side Request Forgery (SSRF)         | De server kan onveilige requests maken | Nee      |        |
 
 ## A01 Broken Access Control
 
