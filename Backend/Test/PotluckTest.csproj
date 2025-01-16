@@ -17,11 +17,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Main\Potluck.csproj"/>
+        <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting"/>
+        <ProjectReference Include="..\Data\Data.csproj"/>
+        <ProjectReference Include="..\Logic\Logic.csproj"/>
+        <ProjectReference Include="..\Main\Potluck.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -1,13 +1,15 @@
-﻿namespace Logic.Models;
+﻿namespace Data.Models;
 
+// ReSharper disable file PropertyCanBeMadeInitOnly.Global
+// ReSharper disable file EntityFramework.ModelValidation.UnlimitedStringLength
+// ReSharper disable file EntityFramework.ModelValidation.CircularDependency
+// ReSharper disable file ClassWithVirtualMembersNeverInherited.Global
 public class Transaction
 {
     public int Id { get; set; }
-    public virtual House House { get; set; }
+    public virtual required House House { get; set; }
     public int EuroCents { get; set; }
     public int CookingPoints { get; set; }
-
-    // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
     public string Description { get; set; } = "";
     public virtual User? ToUser { get; set; }
     public bool IsPenalty { get; set; }

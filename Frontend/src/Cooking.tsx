@@ -32,6 +32,7 @@ const Cooking: Component<TabProps & { eatingTotal: number }> = props => {
     })
     const setCookingInfo = (price: number | undefined, description: string | undefined) => {
         if (props.houseName.length <= 0) return
+        if (price != undefined) price *= 100
         client.PUT('/houses/{name}/dinner', {
             params: {
                 path: {
@@ -39,7 +40,7 @@ const Cooking: Component<TabProps & { eatingTotal: number }> = props => {
                 }
             },
             body: {
-                price: price ?? dinnerInfo()?.price ?? 0,
+                price: price ?? dinnerInfo()?.centsPrice ?? 0,
                 description: description ?? dinnerInfo()?.description ?? ''
             }
         }).then(() => refetch())
@@ -104,7 +105,7 @@ const Cooking: Component<TabProps & { eatingTotal: number }> = props => {
                 </FlexRow>
                 <NumberRow
                     text="Cooking total"
-                    value={dinnerInfo()?.price ?? 0}
+                    value={(dinnerInfo()?.centsPrice ?? 0) / 100}
                     setValue={setCookingTotal}
                     step={0.01}
                     enabled={cooking()}

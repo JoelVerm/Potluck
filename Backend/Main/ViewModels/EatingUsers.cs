@@ -3,7 +3,7 @@ using Logic;
 
 namespace Potluck.ViewModels;
 
-public class EatingUsers(IEnumerable<HouseLogic.EatingPerson> eatingList)
+public class EatingUsers(IEnumerable<EatingPerson> eatingList)
 {
-    [JsonInclude] public List<HouseLogic.EatingPerson> EatingList { get; set; } = eatingList.ToList();
+    [JsonInclude] public List<EatingPerson> EatingList { get; set; } = eatingList.ToList();
 }

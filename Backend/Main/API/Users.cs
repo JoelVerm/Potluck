@@ -12,14 +12,14 @@ public static class Users
     {
         app.MapGet(
                 "/users/{name}/house",
-                (string name, UserLogic user) =>
+                (string name, IPotluckDb db) =>
                 {
-                    var u = user.GetUser(name);
+                    var u = db.GetUser(name);
                     if (u == null)
                         return Results.NotFound();
                     if (GetUserName() != name)
                         return Results.Forbid();
-                    return JSON(new HouseResponse(u.user.House?.Name ?? ""));
+                    return JSON(new HouseResponse(u.GetHouse()?.Name ?? ""));
                 }
             ).Produces<HouseResponse>()
             .Produces(403)
@@ -27,14 +27,14 @@ public static class Users
 
         app.MapGet(
                 "/users/{name}/balance",
-                (string name, UserLogic user) =>
+                (string name, IPotluckDb db) =>
                 {
-                    var u = user.GetUser(name);
+                    var u = db.GetUser(name);
                     if (u == null)
                         return Results.NotFound();
                     if (GetUserName() != name)
                         return Results.Forbid();
-                    return JSON(new TotalBalance(u.user.Balance()));
+                    return JSON(new TotalBalance(Transaction.GetTotalForUser(db, name)));
                 }
             ).Produces<TotalBalance>()
             .Produces(403)
@@ -43,17 +43,17 @@ public static class Users
         var eatingTotalPeopleWS = new WebsocketController<int, int>(app, "/users/{name}/eatingTotalPeopleWS");
         app.MapGet(
             eatingTotalPeopleWS.Path,
-            async (string name, HttpContext context, UserLogic user) =>
+            async (string name, HttpContext context, IPotluckDb db) =>
             {
-                var u = user.GetUser(name);
+                var u = db.GetUser(name);
                 if (u == null)
                     return Results.NotFound();
                 if (GetUserName() != name)
                     return Results.Forbid();
-                var houseId = u.HouseId();
+                var houseId = u.GetHouse()?.Id ?? 0;
                 return await eatingTotalPeopleWS.Handle(context, houseId, total =>
                         u.SetEatingTotalPeople(total),
-                    () => u.EatingTotalPeople()
+                    () => u.EatingTotalPeople
                 );
             }
         );
@@ -61,17 +61,17 @@ public static class Users
         var homeStatusWS = new WebsocketController<string, string>(app, "/users/{name}/homeStatusWS");
         app.MapGet(
             homeStatusWS.Path,
-            async (string name, HttpContext context, UserLogic user) =>
+            async (string name, HttpContext context, IPotluckDb db) =>
             {
-                var u = user.GetUser(name);
+                var u = db.GetUser(name);
                 if (u == null)
                     return Results.NotFound();
                 if (GetUserName() != name)
                     return Results.Forbid();
-                var houseId = u.HouseId();
+                var houseId = u.GetHouse()?.Id ?? 0;
                 return await homeStatusWS.Handle(context, houseId, status =>
                         u.SetHomeStatus(status),
-                    () => u.HomeStatus()
+                    () => u.GetHomeStatus()
                 );
             }
         );
@@ -79,17 +79,17 @@ public static class Users
         var dietWS = new WebsocketController<string, string>(app, "/users/{name}/dietWS");
         app.MapGet(
             dietWS.Path,
-            async (string name, HttpContext context, UserLogic user) =>
+            async (string name, HttpContext context, IPotluckDb db) =>
             {
-                var u = user.GetUser(name);
+                var u = db.GetUser(name);
                 if (u == null)
                     return Results.NotFound();
                 if (GetUserName() != name)
                     return Results.Forbid();
-                var houseId = u.HouseId();
+                var houseId = u.GetHouse()?.Id ?? 0;
                 return await dietWS.Handle(context, houseId, diet =>
                         u.SetDiet(diet),
-                    () => u.Diet()
+                    () => u.Diet
                 );
             }
         );

@@ -2,9 +2,9 @@
 
 namespace Potluck.ViewModels;
 
-public class DinnerInfo(decimal price, string description)
+public class DinnerInfo(int centsPrice, string description)
 {
-    [JsonInclude] public decimal Price { get; } = price;
+    [JsonInclude] public int CentsPrice { get; } = centsPrice;
 
     [JsonInclude] public string Description { get; } = description;
 }

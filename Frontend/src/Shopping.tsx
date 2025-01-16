@@ -210,15 +210,15 @@ const Shopping: Component<TabProps> = props => {
                     <Card class="p-2 w-full">
                         <CardHeader class="p-0">
                             <CardTitle>
-                                {transaction.to} 🍴{transaction.points} 🪙
-                                {transaction.money}
+                                {transaction.toUser} 🍴{transaction.cookingPoints} 🪙
+                                {transaction.euroCents! / 100}
                             </CardTitle>
                             <CardDescription>
                                 {transaction.description}
                             </CardDescription>
                         </CardHeader>
                         <CardContent class="p-0">
-                            {transaction.from?.join(', ')}
+                            {transaction.fromUsers?.join(', ')}
                         </CardContent>
                     </Card>
                 )}

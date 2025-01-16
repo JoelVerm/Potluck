@@ -1,11 +1,11 @@
 using Data;
 using Logic;
-using Logic.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Potluck.API;
 using Saunter;
 using Saunter.AsyncApiSchema.v2;
+using User = Data.Models.User;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,9 +42,6 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireDigit = false;
     options.Password.RequireNonAlphanumeric = false;
 });
-
-builder.Services.AddScoped(typeof(UserLogic), p => new UserLogic(p));
-builder.Services.AddScoped(typeof(HouseLogic), p => new HouseLogic(p));
 
 var app = builder.Build();
 

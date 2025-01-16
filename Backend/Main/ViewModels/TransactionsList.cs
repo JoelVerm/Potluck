@@ -3,7 +3,7 @@ using Logic;
 
 namespace Potluck.ViewModels;
 
-public class TransactionsList(IEnumerable<TransactionsLogic.Transaction> transactions)
+public class TransactionsList(IEnumerable<Transaction> transactions)
 {
-    [JsonInclude] public List<TransactionsLogic.Transaction> Transactions { get; set; } = transactions.ToList();
+    [JsonInclude] public List<Transaction> Transactions { get; set; } = transactions.ToList();
 }

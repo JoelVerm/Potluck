@@ -11,37 +11,31 @@ public static class Houses
     public static T SetupHousesRoutes<T>(this T app)
         where T : IEndpointRouteBuilder, IEndpointConventionBuilder
     {
-        app.MapPost("/houses", (HouseLogic house, [FromBody] NamedItem newHouse) =>
+        app.MapPost("/houses", (IPotluckDb db, [FromBody] NamedItem newHouse) =>
             {
                 var username = GetUserName();
-                var status = house.CreateNew(username, newHouse.Name);
-                return status switch
-                {
-                    HouseLogic.CreateHouseStatus.Exists => Results.Conflict(),
-                    HouseLogic.CreateHouseStatus.UserNotFound => Results.NotFound(),
-                    HouseLogic.CreateHouseStatus.Success => Results.Created(),
-                    _ => throw new Exception("This is literally impossible")
-                };
+                var status = House.CreateNew(db, username, newHouse.Name);
+                return status ? Results.Created() : Results.Conflict();
             }).Accepts<NamedItem>("application/json")
             .Produces(201);
 
-        app.MapGet("/houses/{name}/users", (string name, HouseLogic house) =>
+        app.MapGet("/houses/{name}/users", (string name, IPotluckDb db) =>
             {
-                var h = house.GetHouse(name);
+                var h = db.GetHouse(name);
                 if (h == null)
                     return Results.NotFound();
-                if (!h.IsAllowed(GetUserName()))
+                if (!h.IsMember(GetUserName()))
                     return Results.Forbid();
-                return JSON(new HouseNames(h.AllPeople().Select(i => new NamedItem(i))));
+                return JSON(new HouseNames(h.GetMembers().Select(i => new NamedItem(i))));
             }).Produces<HouseNames>()
             .Produces(403)
             .Produces(404);
-        app.MapPost("/houses/{name}/users", (string name, HouseLogic house, [FromBody] NamedItem user) =>
+        app.MapPost("/houses/{name}/users", (string name, IPotluckDb db, [FromBody] NamedItem user) =>
             {
-                var h = house.GetHouse(name);
+                var h = db.GetHouse(name);
                 if (h == null)
                     return Results.NotFound();
-                if (!h.IsAllowed(GetUserName())) return Results.Forbid();
+                if (!h.IsMember(GetUserName())) return Results.Forbid();
                 h.AddUser(user.Name);
                 return Results.Created();
             }).Accepts<NamedItem>("application/json")
@@ -49,92 +43,95 @@ public static class Houses
             .Produces(404)
             .Produces(201);
         app.MapDelete("/houses/{name}/users/{username}",
-                (string name, string username, HouseLogic house) =>
+                (string name, string username, IPotluckDb db) =>
                 {
-                    var h = house.GetHouse(name);
+                    var h = db.GetHouse(name);
                     if (h == null)
                         return Results.NotFound();
-                    if (!h.IsAllowed(GetUserName())) return Results.Forbid();
+                    if (!h.IsMember(GetUserName())) return Results.Forbid();
                     h.RemoveUser(username);
                     return Results.NoContent();
                 }).Produces(204)
             .Produces(403)
             .Produces(404);
 
-        app.MapGet("/houses/{name}/users/homeStatus", (string name, HouseLogic house) =>
+        app.MapGet("/houses/{name}/users/homeStatus", (string name, IPotluckDb db) =>
             {
-                var h = house.GetHouse(name);
+                var h = db.GetHouse(name);
                 if (h == null)
                     return Results.NotFound();
-                if (!h.IsAllowed(GetUserName()))
+                if (!h.IsMember(GetUserName()))
                     return Results.Forbid();
-                return JSON(h.HomeStatusList());
+                return JSON(h.GetHomeStatusList());
             }).Produces<Dictionary<string, string>>()
             .Produces(403)
             .Produces(404);
 
         app.MapGet(
                 "/houses/{name}/transactions",
-                (string name, HouseLogic house) =>
+                (string name, IPotluckDb db) =>
                 {
-                    var h = house.GetHouse(name);
+                    var h = db.GetHouse(name);
                     if (h == null)
                         return Results.NotFound();
-                    if (!h.IsAllowed(GetUserName()))
+                    if (!h.IsMember(GetUserName()))
                         return Results.Forbid();
-                    return JSON(new TransactionsList(h.AllTransactions()));
+                    return JSON(new TransactionsList(db.GetTransactionsForHouse(name)));
                 }
             ).Produces<TransactionsList>()
             .Produces(403)
             .Produces(404);
         app.MapPost(
                 "/houses/{name}/transactions",
-                (string name, [FromBody] TransactionsLogic.Transaction transaction, HouseLogic house) =>
+                (string name, [FromBody] NewTransactionVM newTransaction, IPotluckDb db) =>
                 {
-                    var h = house.GetHouse(name);
+                    var h = db.GetHouse(name);
                     if (h == null)
                         return Results.NotFound();
-                    if (!h.IsAllowed(GetUserName())) return Results.Forbid();
-                    h.AddTransaction(transaction);
+                    if (!h.IsMember(GetUserName())) return Results.Forbid();
+                    var transaction = new Transaction(newTransaction.EuroCents, newTransaction.CookingPoints,
+                        newTransaction.Description, newTransaction.IsPenalty, newTransaction.ToUser,
+                        newTransaction.FromUsers);
+                    db.AddTransactionToHouse(transaction, name);
                     return Results.Created();
                 }
-            ).Accepts<TransactionsLogic.Transaction>("application/json")
+            ).Accepts<Transaction>("application/json")
             .Produces(403)
             .Produces(404)
             .Produces(201);
 
-        app.MapGet("/houses/{name}/users/eating", (string name, HouseLogic house) =>
+        app.MapGet("/houses/{name}/users/eating", (string name, IPotluckDb db) =>
             {
-                var h = house.GetHouse(name);
+                var h = db.GetHouse(name);
                 if (h == null)
                     return Results.NotFound();
-                if (!h.IsAllowed(GetUserName()))
+                if (!h.IsMember(GetUserName()))
                     return Results.Forbid();
-                return JSON(new EatingUsers(h.EatingList()));
+                return JSON(new EatingUsers(h.GetEatingList()));
             }).Produces<EatingUsers>()
             .Produces(403)
             .Produces(404);
 
-        app.MapGet("/houses/{name}/dinner", (string name, HouseLogic house) =>
+        app.MapGet("/houses/{name}/dinner", (string name, IPotluckDb db) =>
             {
-                var h = house.GetHouse(name);
+                var h = db.GetHouse(name);
                 if (h == null)
                     return Results.NotFound();
-                if (!h.IsAllowed(GetUserName()))
+                if (!h.IsMember(GetUserName()))
                     return Results.Forbid();
-                return JSON(new DinnerInfo(h.CookingPrice(), h.CookingDescription()));
+                return JSON(new DinnerInfo(h.CookingPrice, h.CookingDescription));
             }).Produces<DinnerInfo>()
             .Produces(403)
             .Produces(404);
-        app.MapPut("/houses/{name}/dinner", (string name, HouseLogic house, DinnerInfo info) =>
+        app.MapPut("/houses/{name}/dinner", (string name, IPotluckDb db, DinnerInfo info) =>
             {
-                var h = house.GetHouse(name);
+                var h = db.GetHouse(name);
                 if (h == null)
                     return Results.NotFound();
                 var username = GetUserName();
-                if (!h.IsAllowed(username)) return Results.Forbid();
-                h.SetCookingPrice(username, info.Price);
-                h.SetCookingDescription(username, info.Description);
+                if (!h.IsMember(username)) return Results.Forbid();
+                h.SetCookingPrice(info.CentsPrice);
+                h.SetCookingDescription(info.Description);
                 return Results.Created();
             }).Accepts<DinnerInfo>("application/json")
             .Produces(403)
@@ -144,16 +141,16 @@ public static class Houses
         var cookingUserWS = new WebsocketController<bool, string>(app, "/houses/{name}/cookingUserWS");
         app.MapGet(
             cookingUserWS.Path,
-            async (string name, HttpContext context, HouseLogic house) =>
+            async (string name, HttpContext context, IPotluckDb db) =>
             {
-                var h = house.GetHouse(name);
+                var h = db.GetHouse(name);
                 if (h == null)
                     return Results.NotFound();
                 var username = GetUserName();
-                if (!h.IsAllowed(username)) return Results.Forbid();
-                return await cookingUserWS.Handle(context, h.GetId(), cooking =>
-                        h.SetUserCooking(username, cooking),
-                    () => h.CookingUser()
+                if (!h.IsMember(username)) return Results.Forbid();
+                return await cookingUserWS.Handle(context, h.Id, cooking =>
+                        h.SetCookingUser(cooking ? username : null),
+                    () => h.CookingUser ?? ""
                 );
             }
         );
@@ -161,16 +158,16 @@ public static class Houses
         var shoppingListWS = new WebsocketController<string, string>(app, "/houses/{name}/shoppingListWS");
         app.MapGet(
             shoppingListWS.Path,
-            async (string name, HttpContext context, HouseLogic house) =>
+            async (string name, HttpContext context, IPotluckDb db) =>
             {
-                var h = house.GetHouse(name);
+                var h = db.GetHouse(name);
                 if (h == null)
                     return Results.NotFound();
                 var username = GetUserName();
-                if (!h.IsAllowed(username)) return Results.Forbid();
-                return await shoppingListWS.Handle(context, h.GetId(), list =>
+                if (!h.IsMember(username)) return Results.Forbid();
+                return await shoppingListWS.Handle(context, h.Id, list =>
                         h.SetShoppingList(list),
-                    () => h.ShoppingList()
+                    () => h.ShoppingList
                 );
             }
         );

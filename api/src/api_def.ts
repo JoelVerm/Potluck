@@ -1165,8 +1165,8 @@ export interface components {
             refreshToken: string | null;
         };
         DinnerInfo: {
-            /** Format: double */
-            price?: number;
+            /** Format: int32 */
+            centsPrice?: number;
             description?: string | null;
         };
         EatingPerson: {
@@ -1238,17 +1238,18 @@ export interface components {
         TotalBalance: {
             /** Format: int32 */
             cookingPoints?: number;
-            /** Format: double */
-            euros?: number;
+            /** Format: int32 */
+            euroCents?: number;
         };
         Transaction: {
-            to?: string | null;
-            from?: string[] | null;
-            description?: string | null;
-            /** Format: double */
-            money?: number;
             /** Format: int32 */
-            points?: number;
+            euroCents?: number;
+            /** Format: int32 */
+            cookingPoints?: number;
+            description?: string | null;
+            isPenalty?: boolean;
+            toUser?: string | null;
+            fromUsers?: string[] | null;
         };
         TransactionsList: {
             transactions?: components["schemas"]["Transaction"][] | null;

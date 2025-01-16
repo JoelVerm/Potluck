@@ -1,7 +1,7 @@
-using Logic;
-using Logic.Models;
-using DataTransaction = Logic.Models.Transaction;
-using LogicTransaction = Logic.TransactionsLogic.Transaction;
+using Data.Models;
+using DataTransaction = Data.Models.Transaction;
+using House = Data.Models.House;
+using Transaction = Logic.Transaction;
 
 [assembly: TestDataSourceDiscovery(TestDataSourceDiscoveryOption.DuringExecution)]
 
@@ -10,19 +10,21 @@ namespace PotluckTest;
 [TestClass]
 public class TestTransactionsLogic
 {
-    private static readonly User alice = new() { UserName = "Alice" };
+    private static readonly User alice = User("Alice");
+    private static readonly House randomHouse = new();
 
     private static IEnumerable<object[]> TransactionTests { get; } =
     [
         [
             new DataTransaction
             {
+                House = randomHouse,
                 CookingPoints = 5,
                 EuroCents = 1234,
                 Users =
                 [
-                    new User { UserName = "Bob" },
-                    new User { UserName = "Charlie" }
+                    User("Bob"),
+                    User("Charlie")
                 ],
                 ToUser = alice
             },
@@ -32,10 +34,11 @@ public class TestTransactionsLogic
         [
             new DataTransaction
             {
+                House = randomHouse,
                 CookingPoints = 5,
                 EuroCents = 1234,
-                Users = [alice, new User { UserName = "Bob" }],
-                ToUser = new User { UserName = "Charlie" }
+                Users = [alice, User("Bob")],
+                ToUser = User("Charlie")
             },
             -1234 / 2,
             -5 / 2
@@ -43,10 +46,11 @@ public class TestTransactionsLogic
         [
             new DataTransaction
             {
+                House = randomHouse,
                 CookingPoints = 5,
                 EuroCents = 1234,
-                Users = [alice, alice, new User { UserName = "Bob" }],
-                ToUser = new User { UserName = "Charlie" }
+                Users = [alice, alice, User("Bob")],
+                ToUser = User("Charlie")
             },
             -1234 / 3 * 2,
             -5 / 3 * 2
@@ -54,9 +58,10 @@ public class TestTransactionsLogic
         [
             new DataTransaction
             {
+                House = randomHouse,
                 CookingPoints = 5,
                 EuroCents = 1234,
-                Users = [alice, new User { UserName = "Bob" }],
+                Users = [alice, User("Bob")],
                 ToUser = alice
             },
             1234 - 1234 / 2,
@@ -64,18 +69,26 @@ public class TestTransactionsLogic
         ]
     ];
 
+    private static User User(string name)
+    {
+        return new User { UserName = name };
+    }
+
     [TestMethod]
     [DynamicData(nameof(TransactionTests))]
-    public void BalanceForTransaction_Parameterized(
-        DataTransaction transaction,
+    public void BalanceForTransaction(
+        DataTransaction dataTransaction,
         int expectedEuroCents,
         int expectedCookingPoints
     )
     {
         // Arrange
+        var transaction = new Transaction(dataTransaction.EuroCents,
+            dataTransaction.CookingPoints, dataTransaction.Description, dataTransaction.IsPenalty,
+            dataTransaction.ToUser!.UserName!, dataTransaction.Users.Select(u => u!.UserName!).ToArray());
 
         // Act
-        var (euroCents, cookingPoints) = TransactionsLogic.BalanceFor(alice, transaction);
+        var (euroCents, cookingPoints) = transaction.GetForUser(alice.UserName!);
 
         // Assert
         Assert.AreEqual(expectedEuroCents, euroCents);
@@ -83,98 +96,54 @@ public class TestTransactionsLogic
     }
 
     [TestMethod]
-    public void BalanceForUser_Valid()
+    public void BalanceForUser()
     {
         // Arrange
-        var user = new User { UserName = "Alice" };
-        user.Transactions =
-        [
-            new DataTransaction
-            {
-                CookingPoints = 5,
-                EuroCents = 1234,
-                Users = [user, new User { UserName = "Bob" }],
-                ToUser = user
-            },
-            new DataTransaction
-            {
-                CookingPoints = 12,
-                EuroCents = 850,
-                Users = [new User { UserName = "Charlie" }],
-                ToUser = user
-            },
-            new DataTransaction
-            {
-                CookingPoints = 4,
-                EuroCents = 456,
-                Users =
-                [
-                    user,
-                    user,
-                    new User { UserName = "Bob" },
-                    new User { UserName = "Charlie" }
-                ],
-                ToUser = new User { UserName = "Bob" }
-            }
-        ];
+
+        MockDb db = new()
+        {
+            TransactionsForUser =
+            [
+                new DataTransaction
+                {
+                    House = randomHouse,
+                    CookingPoints = 5,
+                    EuroCents = 1234,
+                    Users = [alice, User("Bob")],
+                    ToUser = alice
+                },
+                new DataTransaction
+                {
+                    House = randomHouse,
+                    CookingPoints = 12,
+                    EuroCents = 850,
+                    Users = [User("Charlie")],
+                    ToUser = alice
+                },
+                new DataTransaction
+                {
+                    House = randomHouse,
+                    CookingPoints = 4,
+                    EuroCents = 456,
+                    Users =
+                    [
+                        alice,
+                        alice,
+                        User("Bob"),
+                        User("Charlie")
+                    ],
+                    ToUser = User("Bob")
+                }
+            ]
+        };
 
         // Act
-        var (cookingPoints, euros) = user.Balance();
+        var (euroCents, cookingPoints) = Transaction.GetTotalForUser(db, alice.UserName!);
 
         // Assert
-        const decimal expectedEuroCents = 12.34m - 12.34m / 2 + 8.50m + -4.56m / 4 * 2;
-        Assert.AreEqual(expectedEuroCents, euros);
+        const int expectedEuroCents = 1234 - 1234 / 2 + 850 + -456 / 4 * 2;
+        Assert.AreEqual(expectedEuroCents, euroCents);
         const int expectedCookingPoints = 5 - 5 / 2 + 12 + -4 / 4 * 2;
         Assert.AreEqual(expectedCookingPoints, cookingPoints);
-    }
-
-    [TestMethod]
-    public void AddTransaction_Valid()
-    {
-        // Arrange
-        var user = new User { UserName = "Alice" };
-        var bob = new User { UserName = "Bob" };
-        var charlie = new User { UserName = "Charlie" };
-        user.House = new House { Users = [user, bob, charlie], Transactions = [] };
-        var db = new MockDb { User = user, House = user.House };
-        var transactions = new HouseLogic(db);
-
-        // Act
-        transactions.GetHouse("")!.AddTransaction(
-            new LogicTransaction("Bob", ["Alice", "Charlie", "Charlie"], "Shopping", 6.80m, 3)
-        );
-
-        // Assert
-        var transaction = user.House.Transactions.First();
-        Assert.AreEqual(bob, transaction.ToUser);
-        CollectionAssert.AreEqual(
-            new List<User> { user, charlie, charlie },
-            transaction.Users
-        );
-        Assert.AreEqual("Shopping", transaction.Description);
-        Assert.AreEqual(680, transaction.EuroCents);
-        Assert.AreEqual(3, transaction.CookingPoints);
-        Assert.AreEqual(1, db.SaveChangesTimesCalled);
-    }
-
-    [TestMethod]
-    public void AddTransaction_Invalid_UserNotInHouse()
-    {
-        // Arrange
-        var user = new User { UserName = "Alice" };
-        var bob = new User { UserName = "Bob" };
-        var charlie = new User { UserName = "Charlie" };
-        user.House = new House { Users = [user, bob, charlie], Transactions = [] };
-        var db = new MockDb { User = user, House = user.House };
-        var transactions = new HouseLogic(db);
-
-        // Act
-        transactions.GetHouse("")!.AddTransaction(
-            new LogicTransaction("Bob", ["Alice", "Charlie", "David"], "Shopping", 6.80m, 3)
-        );
-
-        // Assert
-        Assert.AreEqual(0, user.House.Transactions.Count);
-        Assert.AreEqual(0, db.SaveChangesTimesCalled);
     }
 }

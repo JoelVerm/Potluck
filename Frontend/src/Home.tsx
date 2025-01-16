@@ -63,7 +63,7 @@ const Home: Component<TabProps & { setEatingTotal: (val: number) => void }> = pr
         >
             <h1>
                 Your balance: 🍴{totalBalance()?.cookingPoints ?? 0} 🪙
-                {totalBalance()?.euros ?? 0}
+                {(totalBalance()?.euroCents ?? 0) / 100}
             </h1>
             <NumberRow
                 data-testid="eating-total"

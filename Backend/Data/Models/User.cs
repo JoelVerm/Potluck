@@ -1,13 +1,15 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace Logic.Models;
+namespace Data.Models;
 
+// ReSharper disable file PropertyCanBeMadeInitOnly.Global
+// ReSharper disable file EntityFramework.ModelValidation.UnlimitedStringLength
+// ReSharper disable file EntityFramework.ModelValidation.CircularDependency
+// ReSharper disable file ClassWithVirtualMembersNeverInherited.Global
 public class User : IdentityUser
 {
     public int AtHomeStatus { get; set; }
     public int EatingTotalPeople { get; set; }
-
-    // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
     public string Diet { get; set; } = "";
     public virtual House? House { get; set; }
     public virtual List<TransactionUser> TransactionUsers { get; set; } = [];
