@@ -1,0 +1,61 @@
+networks:
+  internal:
+    internal: true
+
+volumes:
+  potluck-sql-storage:
+
+services:
+  caddy:
+    image: caddy:latest
+    ports:
+      - "9071:80"
+    volumes:
+      - /home/lisa/Caddyfile:/etc/caddy/Caddyfile
+    networks:
+      - internal
+    depends_on:
+      - frontend
+      - backend
+    deploy:
+      update_config:
+        order: start-first
+  frontend:
+    image: flamidev/potluck-frontend:latest
+    networks:
+      - internal
+    deploy:
+      update_config:
+        order: start-first
+  backend:
+    image: flamidev/potluck-backend:latest
+    networks:
+      - internal
+    depends_on:
+      - database
+    deploy:
+      update_config:
+        order: start-first
+    environment:
+      ConnectionString: |
+        Server=database;
+        Database=Potluck;
+        User Id=sa;
+        Password=TheDatabasePasswordWeUseAndNoOneCanGuess12345;
+        Trusted_Connection=False;
+        TrustServerCertificate=True;
+        MultipleActiveResultSets=true;
+  database:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    networks:
+      - internal
+    deploy:
+      update_config:
+        order: start-first
+    volumes:
+      - potluck-sql-storage:/var/opt/mssql
+    environment:
+      ACCEPT_EULA: 1
+      MSSQL_SA_PASSWORD: "TheDatabasePasswordWeUseAndNoOneCanGuess12345"
+      MSSQL_PID: Developer
+      MSSQL_TELEMETRY_ENABLED: "FALSE"
