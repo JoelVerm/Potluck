@@ -1,10 +1,10 @@
 # Docker deployment
 
-Docker wordt vaak gebruikt om ingewikkelde systemen te deployen. Zeker het gebruik van een docker-compose helpt hierbij, omdat het hele systeem na één commando online is. Maar je moet nog wel dat commando starten, en het is niet erg snel... Zijn er betere manieren?
+Docker wordt vaak gebruikt om ingewikkelde systemen te deployen. Zeker het gebruik van Docker compose helpt hierbij, omdat het hele systeem na één commando online is. Maar je moet nog wel dat commando starten, en het is niet erg snel... Zijn er betere manieren?
 
 ## Onderzoeksvraag
 
-Dit onderzoek vraagt zich af: Wat is de meest geschikte manier om docker te gebruiken voor het deployen van een systeem met meerdere containers zoals Potluck?
+Wat is de meest geschikte manier om docker te gebruiken voor het deployen van een systeem met meerdere containers zoals Potluck?
 
 Hierbij komen meerdere subvragen kijken:
 
@@ -26,7 +26,7 @@ De aanbevelingen van onbekende mensen op forums lopen erg uiteen, daarom zijn di
 - Heeft deze oplossing met Docker te maken?
 - Wordt deze oplossing vaker genoemd?
 
-Daarnaast is gebruik gemaakt van de StackOverflow survey om te bepalen wat de meest populaire opties zijn en een volgorde aan te brengen.
+Daarnaast is gebruik gemaakt van de StackOverflow survey (1) om te bepalen wat de meest populaire opties zijn en een volgorde aan te brengen.
 
 ### Resultaat
 
@@ -56,15 +56,15 @@ De gevonden mogelijke opties waren:
 - HashiCorp Nomad
 - Podman
 
-Kubernetes is vooral ontworpen voor grote bedrijven. Het kan goed overweg met meerdere systemen met miljoenen gebruikers. Daardoor is het wel veel complexer dan nodig is. Daarom viel het hier af.
+Kubernetes (2) is vooral ontworpen voor grote bedrijven. Het kan goed overweg met meerdere systemen met miljoenen gebruikers. Daardoor is het wel veel complexer dan nodig is. Daarom viel het hier af.
 
-Docker stack lijkt heel erg op Docker compose. Het gebruikt ook een compose.yaml, maar is flexibeler, en gaat ervan uit dat het op een productie machine draait. Dit lijkt op wat hier nodig is.
+Docker stack (3) lijkt heel erg op Docker compose. Het gebruikt ook een compose.yaml, maar is flexibeler, en gaat ervan uit dat het op een productie machine draait. Dit lijkt op wat hier nodig is.
 
-Docker compose is hetgeen waarvoor alternatieven gezocht worden. Ondanks dat lijkt het nog steeds een goede oplossing, omdat het wel de gewenste functionaliteit bevat.
+Docker compose (4) is hetgeen waarvoor alternatieven gezocht worden. Ondanks dat lijkt het nog steeds een goede oplossing, omdat het wel de gewenste functionaliteit bevat.
 
-Nomad lijkt erg op Kubernetes. Het is eenvoudiger te leren en gebruiken, maar nog steeds gemaakt om grotere systemen te runnen, en meer werk dan nodig voor kleinere applicaties.
+Nomad (5) lijkt erg op Kubernetes. Het is eenvoudiger te leren en gebruiken, maar nog steeds gemaakt om grotere systemen te runnen, en meer werk dan nodig voor kleinere applicaties.
 
-Podman kan erg veel maar is nog steeds eenvoudig. Helaas bleek het niet gespecialiseerd in complete systemen, maar beter in losse containers. Dit is niet wat gezocht wordt en Podman viel dus af.
+Podman (6) kan erg veel maar is nog steeds eenvoudig. Helaas bleek het niet gespecialiseerd in complete systemen, maar beter in losse containers. Dit is niet wat gezocht wordt en Podman viel dus af.
 
 Uiteindelijk zijn Docker stack en Docker compose geselecteerd als mogelijke oplossingen.
 
@@ -97,4 +97,13 @@ Aan de andere kant is Docker compose een stuk eenvoudiger. Het kan niet omgaan m
 
 ## Conclusie
 
-Van de meest populaire manieren zijn Docker compose en Docker stack het meest geschikt. Tussen deze twee is geen definitieve winnaar te bepalen, omdat ze zijn gemaakt voor twee verschillende doeleinden. Om lokaal te ontwikkelen en testen is Docker compose erg handig. Maar voor het deployen van het systeem is Docker stack duidelijk het beste.
+Van de meest populaire manieren zijn Docker compose en Docker stack het meest geschikt. Terwijl om lokaal te ontwikkelen en testen Docker compose erg handig is, is voor het deployen van het systeem Docker stack duidelijk het beste. Daarom is Docker stack de meest geschikte manier voor productiedeployment van systemen zoals Potluck.
+
+## Bronnen
+
+1. https://survey.stackoverflow.co/2024/
+2. https://kubernetes.io/docs/concepts/overview/#why-you-need-kubernetes-and-what-can-it-do
+3. https://docs.docker.com/engine/swarm/stack-deploy/
+4. https://docs.docker.com/compose/intro/features-uses/
+5. https://developer.hashicorp.com/nomad/tutorials/get-started/gs-overview
+6. http://podman.io/docs
