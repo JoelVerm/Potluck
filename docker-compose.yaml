@@ -9,11 +9,11 @@ volumes:
 
 services:
   caddy:
-    image: caddy:latest
+    build:
+      context: .
+      dockerfile: caddy.Dockerfile
     ports:
       - "80:80"
-    volumes:
-      - ./docker.Caddyfile:/etc/caddy/Caddyfile
     networks:
       - external
       - internal

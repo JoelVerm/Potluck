@@ -12,7 +12,7 @@ public class TestUserLogic
 
         // Act
         var homeStatusEnumSize = Enum.GetNames(typeof(AtHomeStatus)).Length;
-        var homeStatusStringSize = User.homeStatus.Length;
+        var homeStatusStringSize = User.homeStatuses.Length;
 
         // Assert
         Assert.AreEqual(homeStatusEnumSize, homeStatusStringSize);

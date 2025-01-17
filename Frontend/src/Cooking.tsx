@@ -40,13 +40,13 @@ const Cooking: Component<TabProps & { eatingTotal: number }> = props => {
                 }
             },
             body: {
-                price: price ?? dinnerInfo()?.centsPrice ?? 0,
+                centsPrice: price ?? dinnerInfo()?.centsPrice ?? 0,
                 description: description ?? dinnerInfo()?.description ?? ''
             }
         }).then(() => refetch())
     }
-    const setCookingTotal = (price: number) => setCookingInfo(price, undefined)
-    const setDescription = (description: string) => setCookingInfo(undefined, description)
+    const setCookingTotal = (price: number) => setCookingInfo(price || 0, undefined)
+    const setDescription = (description: string) => setCookingInfo(undefined, description || "")
     const [eatingList, setEatingList] = createSignal<
         EatingPerson[]
     >([])
@@ -97,6 +97,7 @@ const Cooking: Component<TabProps & { eatingTotal: number }> = props => {
                         class="flex items-center space-x-2"
                         checked={cooking()}
                         onChange={setCooking}
+                        data-testid="cooking-switch"
                     >
                         <SwitchControl>
                             <SwitchThumb/>
@@ -109,6 +110,7 @@ const Cooking: Component<TabProps & { eatingTotal: number }> = props => {
                     setValue={setCookingTotal}
                     step={0.01}
                     enabled={cooking()}
+                    data-testid="cooking-total"
                 />
                 <TextField class="w-full">
                     <TextFieldInput
@@ -117,6 +119,7 @@ const Cooking: Component<TabProps & { eatingTotal: number }> = props => {
                         value={dinnerInfo()?.description ?? ''}
                         onInput={e => setDescription(e.currentTarget.value)}
                         disabled={!cooking()}
+                        data-testid="cooking-description"
                     />
                 </TextField>
             </Show>

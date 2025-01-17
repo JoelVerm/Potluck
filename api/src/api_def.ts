@@ -33,6 +33,13 @@ export interface paths {
                     };
                     content?: never;
                 };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
             };
         };
         delete?: never;
@@ -287,7 +294,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["Transaction"];
+                    "application/json": components["schemas"]["NewTransactionVM"];
                 };
             };
             responses: {
@@ -1219,6 +1226,16 @@ export interface components {
         };
         NamedItem: {
             name?: string | null;
+        };
+        NewTransactionVM: {
+            /** Format: int32 */
+            euroCents?: number;
+            /** Format: int32 */
+            cookingPoints?: number;
+            description?: string | null;
+            isPenalty?: boolean;
+            toUser?: string | null;
+            fromUsers?: string[] | null;
         };
         RefreshRequest: {
             refreshToken: string | null;

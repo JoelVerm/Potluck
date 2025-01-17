@@ -55,15 +55,17 @@ public class House(
         return true;
     }
 
-    public bool SetCookingPrice(int price)
+    public bool SetCookingPrice(int price, string user)
     {
+        if (!IsUserCooking(user)) return false;
         if (!db.SetHouseCookingPrice(Name, price)) return false;
         CookingPrice = price;
         return true;
     }
 
-    public bool SetCookingDescription(string description)
+    public bool SetCookingDescription(string description, string user)
     {
+        if (!IsUserCooking(user)) return false;
         if (!db.SetHouseCookingDescription(Name, description)) return false;
         CookingDescription = description;
         return true;

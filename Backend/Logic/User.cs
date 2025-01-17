@@ -16,7 +16,7 @@ public class User(
     int eatingTotalPeople,
     string diet)
 {
-    public static readonly ImmutableArray<string> homeStatus =
+    public static readonly ImmutableArray<string> homeStatuses =
     [
         "At home",
         "Away for a bit",
@@ -42,12 +42,12 @@ public class User(
 
     public string GetHomeStatus()
     {
-        return homeStatus[(int)AtHomeStatus];
+        return homeStatuses[(int)AtHomeStatus];
     }
 
     public bool SetHomeStatus(string homeStatus)
     {
-        var status = homeStatus.IndexOf(homeStatus, StringComparison.Ordinal);
+        var status = homeStatuses.IndexOf(homeStatus);
         if (status == -1)
             return false;
         if (!db.SetUserAtHomeStatus(Name, (AtHomeStatus)status))

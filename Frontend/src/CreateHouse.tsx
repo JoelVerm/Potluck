@@ -13,7 +13,7 @@ const CreateHouse: Component<{ setHouseName: (name: string) => void }> = props =
             flexDirection="col"
             alignItems="start"
             justifyContent="center"
-            class="gap-2 max-w-lg mx-auto my-16"
+            class="gap-2 max-w-lg mx-auto my-16 px-2"
         >
             <h1 class='font-medium'>Add your own house here or come back after someone added you!</h1>
             <TextField class="w-full">

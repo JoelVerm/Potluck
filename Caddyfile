@@ -1,6 +1,5 @@
 {
     admin off
-    debug
     auto_https off
 }
 

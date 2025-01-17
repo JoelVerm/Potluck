@@ -23,8 +23,11 @@ const NumberRow: Component<ComponentProps<'div'> & {
             <span>{props.text}</span>
             <NumberField
                 class="w-36"
-                onRawValueChange={props.setValue}
+                onRawValueChange={v => {
+                    if (v != props.value) props.setValue(v)
+                }}
                 rawValue={props.value}
+                defaultValue={props.value}
                 minValue={props.min ?? 0}
                 maxValue={props.max ?? 100}
                 step={props.step ?? 1.0}

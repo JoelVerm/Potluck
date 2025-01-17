@@ -35,35 +35,25 @@ export default defineConfig({
     /* Configure projects for major browsers */
     projects: [
         {
-            name: 'setup',
-            testMatch: /register.spec.ts/,
-        },
-        {
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
-                storageState: 'playwright/.cache/register.json',
             },
-            testIgnore: /register.spec.ts/,
-            dependencies: ['setup'],
+            testIgnore: /auth.ts/,
         },
         {
             name: 'firefox',
             use: {
                 ...devices['Desktop Firefox'],
-                storageState: 'playwright/.cache/register.json',
             },
-            testIgnore: /register.spec.ts/,
-            dependencies: ['setup'],
+            testIgnore: /auth.ts/,
         },
         // {
         //     name: 'webkit',
         //     use: {
         //         ...devices['Desktop Safari'],
-        //         storageState: 'playwright/.cache/register.json',
         //     },
-        //     testIgnore: /register.spec.ts/,
-        //     dependencies: ['setup'],
+        //     testIgnore: /auth.ts/,
         // },
 
         /* Test against mobile viewports. */
@@ -71,19 +61,15 @@ export default defineConfig({
             name: 'Mobile Chrome',
             use: {
                 ...devices['Pixel 5'],
-                storageState: 'playwright/.cache/register.json',
             },
-            testIgnore: /register.spec.ts/,
-            dependencies: ['setup'],
+            testIgnore: /auth.ts/,
         },
         // {
         //     name: 'Mobile Safari',
         //     use: {
         //         ...devices['iPhone 12'],
-        //         storageState: 'playwright/.cache/register.json',
         //     },
-        //     testIgnore: /register.spec.ts/,
-        //     dependencies: ['setup'],
+        //     testIgnore: /auth.ts/,
         // },
     ],
 

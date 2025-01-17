@@ -79,7 +79,10 @@ const Home: Component<TabProps & { setEatingTotal: (val: number) => void }> = pr
                     value={
                         homeStatus()
                     }
-                    onChange={v => setHomeStatus(v!)}
+                    onChange={v => {
+                        console.log(v)
+                        setHomeStatus(v!)
+                    }}
                     options={homeStatusOptions.slice()}
                     defaultValue={homeStatusOptions[0]}
                     disallowEmptySelection={true}
@@ -90,18 +93,18 @@ const Home: Component<TabProps & { setEatingTotal: (val: number) => void }> = pr
                         </SelectItem>
                     )}
                 >
-                    <SelectTrigger aria-label="Home status" class="w-36">
+                    <SelectTrigger aria-label="Home status" class="w-36" data-testid="homeStatus-button">
                         <SelectValue<string>>
                             {state => state.selectedOption()}
                         </SelectValue>
                     </SelectTrigger>
-                    <SelectContent/>
+                    <SelectContent data-testid="homeStatus-options"/>
                 </Select>
             </FlexRow>
             <div>
                 <Index each={homeStatusOptions}>
                     {option => (
-                        <div class="my-2">
+                        <div class="my-2" data-testid={`homeStatus-${option().replaceAll(' ', '-')}`}>
                             <h1>{option()}</h1>
                             <For
                                 each={Object.entries(homeStatusList() ?? {})

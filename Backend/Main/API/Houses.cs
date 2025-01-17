@@ -17,7 +17,8 @@ public static class Houses
                 var status = House.CreateNew(db, username, newHouse.Name);
                 return status ? Results.Created() : Results.Conflict();
             }).Accepts<NamedItem>("application/json")
-            .Produces(201);
+            .Produces(201)
+            .Produces(409);
 
         app.MapGet("/houses/{name}/users", (string name, IPotluckDb db) =>
             {
@@ -36,8 +37,7 @@ public static class Houses
                 if (h == null)
                     return Results.NotFound();
                 if (!h.IsMember(GetUserName())) return Results.Forbid();
-                h.AddUser(user.Name);
-                return Results.Created();
+                return h.AddUser(user.Name) ? Results.Created() : Results.NotFound();
             }).Accepts<NamedItem>("application/json")
             .Produces(403)
             .Produces(404)
@@ -92,8 +92,7 @@ public static class Houses
                     var transaction = new Transaction(newTransaction.EuroCents, newTransaction.CookingPoints,
                         newTransaction.Description, newTransaction.IsPenalty, newTransaction.ToUser,
                         newTransaction.FromUsers);
-                    db.AddTransactionToHouse(transaction, name);
-                    return Results.Created();
+                    return db.AddTransactionToHouse(transaction, name) ? Results.Created() : Results.NotFound();
                 }
             ).Accepts<Transaction>("application/json")
             .Produces(403)
@@ -130,8 +129,10 @@ public static class Houses
                     return Results.NotFound();
                 var username = GetUserName();
                 if (!h.IsMember(username)) return Results.Forbid();
-                h.SetCookingPrice(info.CentsPrice);
-                h.SetCookingDescription(info.Description);
+                if (!h.SetCookingPrice(info.CentsPrice, username))
+                    return Results.Forbid();
+                if (!h.SetCookingDescription(info.Description, username))
+                    return Results.Forbid();
                 return Results.Created();
             }).Accepts<DinnerInfo>("application/json")
             .Produces(403)
